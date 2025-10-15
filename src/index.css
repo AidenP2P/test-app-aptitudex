@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 180 7% 16%; /* #25292a */
+    --background-dark: 210 22% 4%; /* #07090b */
+    --background-accent: 4 28% 19%; /* #3f2423 */
+    --foreground: 0 0% 100%; /* white */
+
+    --card: 180 7% 16%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 180 7% 16%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 240 100% 50%; /* #0000ff */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 4 28% 19%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 22% 4%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 240 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Brand scale derived from #0000ff */
+    --brand-50: 235 100% 97%;
+    --brand-100: 235 100% 94%;
+    --brand-200: 235 100% 86%;
+    --brand-300: 235 100% 79%;
+    --brand-400: 235 100% 72%;
+    --brand-500: 235 100% 65%;
+    --brand-600: 235 100% 58%;
+    --brand-700: 236 100% 51%;
+    --brand-800: 237 100% 45%;
+    --brand-900: 239 100% 35%;
+    --brand: 240 100% 50%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 25%;
+    --input: 0 0% 20%;
+    --ring: 6 89% 60%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(235 100% 58%), hsl(236 100% 51%));
+    --gradient-subtle: linear-gradient(180deg, hsl(180 7% 16%), hsl(210 22% 4%));
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 16px -4px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 24px hsl(240 100% 50% / 0.2);
+    
+    /* Transitions */
+    --transition-smooth: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-montserrat;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
