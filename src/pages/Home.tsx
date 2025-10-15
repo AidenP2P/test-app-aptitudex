@@ -13,7 +13,7 @@ const Home = () => {
     pendingClaim
   } = useAppStore();
   return <>
-      <Header title="AptitudeX" subtitle="On-chain app for team recognition and reward" />
+      <Header title="Aptitude X Base Community" subtitle="On-chain app for team recognition and reward" />
       
       <WalletPanel />
       
