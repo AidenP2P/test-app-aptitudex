@@ -1,4 +1,5 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
+import { base } from 'viem/chains'
 
 export interface User {
   address: string;
@@ -31,9 +32,13 @@ interface AppStore {
   pendingClaim: string;
   rewards: Reward[];
   activity: Activity[];
-  connectWallet: () => void;
+  chainId: number;
+  setWalletConnection: (address: string, connected: boolean) => void;
+  setChainId: (chainId: number) => void;
   disconnectWallet: () => void;
   claimRewards: () => void;
+  setKudosBalance: (balance: string) => void;
+  setPendingClaim: (amount: string) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -43,87 +48,30 @@ export const useAppStore = create<AppStore>((set) => ({
   pendingClaim: '0',
   rewards: [],
   activity: [],
-  
-  connectWallet: () => {
-    // Mock wallet connection
-    set({
-      isConnected: true,
-      user: {
-        address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1',
-        isAdmin: true,
-        streakDays: 5,
-      },
-      kudosBalance: '1,250',
-      pendingClaim: '250',
-      rewards: [
-        {
-          id: 'r1',
-          title: 'Peer Kudos',
-          amount: '50',
-          date: '2025-10-01',
-          status: 'earned',
-          rule: 'Team Recognition',
+  chainId: base.id,
+
+  setWalletConnection: (address: string, connected: boolean) => {
+    if (connected) {
+      set({
+        isConnected: true,
+        user: {
+          address,
+          isAdmin: false,
+          streakDays: 0,
         },
-        {
-          id: 'r2',
-          title: 'Sprint Goal',
-          amount: '100',
-          date: '2025-09-28',
-          status: 'claimed',
-          rule: 'Sprint Completion',
-        },
-        {
-          id: 'r3',
-          title: 'Code Review',
-          amount: '75',
-          date: '2025-09-25',
-          status: 'earned',
-          rule: 'Quality Contribution',
-        },
-        {
-          id: 'r4',
-          title: 'Daily Streak',
-          amount: '25',
-          date: '2025-09-20',
-          status: 'claimed',
-          rule: 'Consistency Bonus',
-        },
-      ],
-      activity: [
-        {
-          id: 'a1',
-          type: 'claim',
-          amount: '200',
-          date: '2025-10-02',
-          tx: '0xabc123...',
-          description: 'Claimed pending rewards',
-        },
-        {
-          id: 'a2',
-          type: 'earn',
-          amount: '50',
-          date: '2025-10-01',
-          description: 'Peer Kudos from teammate',
-        },
-        {
-          id: 'a3',
-          type: 'earn',
-          amount: '100',
-          date: '2025-09-28',
-          description: 'Sprint Goal completed',
-        },
-        {
-          id: 'a4',
-          type: 'claim',
-          amount: '75',
-          date: '2025-09-25',
-          tx: '0xdef456...',
-          description: 'Claimed weekly rewards',
-        },
-      ],
-    });
+      })
+    } else {
+      set({
+        isConnected: false,
+        user: null,
+      })
+    }
   },
-  
+
+  setChainId: (chainId: number) => {
+    set({ chainId })
+  },
+
   disconnectWallet: () => {
     set({
       isConnected: false,
@@ -132,9 +80,17 @@ export const useAppStore = create<AppStore>((set) => ({
       pendingClaim: '0',
       rewards: [],
       activity: [],
-    });
+    })
   },
-  
+
+  setKudosBalance: (balance: string) => {
+    set({ kudosBalance: balance })
+  },
+
+  setPendingClaim: (amount: string) => {
+    set({ pendingClaim: amount })
+  },
+
   claimRewards: () => {
     set((state) => ({
       kudosBalance: String(Number(state.kudosBalance.replace(',', '')) + Number(state.pendingClaim)),
@@ -150,6 +106,6 @@ export const useAppStore = create<AppStore>((set) => ({
         },
         ...state.activity,
       ],
-    }));
+    }))
   },
-}));
+}))

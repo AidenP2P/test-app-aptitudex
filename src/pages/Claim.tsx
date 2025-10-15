@@ -1,20 +1,31 @@
-import { Download, ArrowRight } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/button';
-import { useAppStore } from '@/store/useAppStore';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { Download, ArrowRight, Loader2 } from 'lucide-react'
+import { Header } from '@/components/layout/Header'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { useAppStore } from '@/store/useAppStore'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import { useKudos } from '@/hooks/useKudos'
+import { useClaimRewards } from '@/hooks/useClaimRewards'
+import { cn } from '@/lib/utils'
 
 const Claim = () => {
-  const { isConnected, pendingClaim, claimRewards } = useAppStore();
-  const navigate = useNavigate();
+  const { isConnected, pendingClaim } = useAppStore()
+  const navigate = useNavigate()
+  const { isLoading: isLoadingKudos } = useKudos()
+  const { claimRewards, isPending, isSuccess } = useClaimRewards()
   
-  const handleClaim = () => {
-    claimRewards();
-    toast.success('Claim complete! Kudos added to your wallet.', {
-      duration: 3000,
-    });
-  };
+  const handleClaim = async () => {
+    try {
+      await claimRewards()
+      toast.success('Claim complete! Kudos added to your wallet.', {
+        duration: 3000,
+      })
+    } catch (error) {
+      toast.error('Failed to claim rewards. Please try again.', {
+        duration: 3000,
+      })
+    }
+  }
   
   if (!isConnected) {
     return (
@@ -27,10 +38,11 @@ const Claim = () => {
           </p>
         </div>
       </>
-    );
+    )
   }
   
-  const hasPending = Number(pendingClaim) > 0;
+  const hasPending = Number(pendingClaim) > 0
+  const isLoading = isLoadingKudos || isPending
   
   return (
     <>
@@ -47,18 +59,25 @@ const Claim = () => {
             <div>
               <p className="text-sm text-muted-foreground">Pending Claim</p>
               <p className={`text-3xl font-bold ${hasPending ? 'text-white' : 'text-muted-foreground'}`}>
-                {pendingClaim}
+                {isLoadingKudos ? '...' : pendingClaim}
               </p>
             </div>
           </div>
           
           <Button
             onClick={handleClaim}
-            disabled={!hasPending}
-            className="w-full h-12 mb-3"
-            size="lg"
+            disabled={!hasPending || isLoading}
+            className={cn(
+              "w-full h-12 mb-3",
+              buttonVariants({ variant: "default", size: "lg" })
+            )}
           >
-            {hasPending ? (
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {isPending ? 'Claiming...' : 'Loading...'}
+              </>
+            ) : hasPending ? (
               <>
                 Claim Now
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -70,15 +89,16 @@ const Claim = () => {
           
           <Button
             onClick={() => navigate('/activity')}
-            variant="outline"
-            className="w-full h-12"
-            size="lg"
+            className={cn(
+              "w-full h-12",
+              buttonVariants({ variant: "outline", size: "lg" })
+            )}
           >
             View History
           </Button>
         </div>
         
-        {!hasPending && (
+        {!hasPending && !isLoading && (
           <div className="text-center py-8">
             <p className="text-sm text-muted-foreground">
               All rewards claimed! Keep earning more kudos.
@@ -87,7 +107,7 @@ const Claim = () => {
         )}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default Claim;
+export default Claim

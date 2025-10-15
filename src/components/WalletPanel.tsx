@@ -1,12 +1,41 @@
-import { Wallet, Power } from 'lucide-react';
-import { useAppStore } from '@/store/useAppStore';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import baseLogoInline from '@/assets/base-logo-inline.png';
+import { useEffect } from 'react'
+import { Wallet, Power } from 'lucide-react'
+import { useAppStore } from '@/store/useAppStore'
+import { Button } from './ui/button'
+import { Badge } from './ui/badge'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { injected } from 'wagmi/connectors'
+import baseLogoInline from '@/assets/base-logo-inline.png'
 
 export const WalletPanel = () => {
-  const { isConnected, user, connectWallet, disconnectWallet } = useAppStore();
+  const { isConnected: isStoreConnected, setWalletConnection, disconnectWallet } = useAppStore()
   
+  const { address, isConnected } = useAccount()
+  const { connect } = useConnect()
+  const { disconnect } = useDisconnect()
+
+  // Sync wagmi connection state with our store
+  useEffect(() => {
+    if (isConnected && address) {
+      setWalletConnection(address, true)
+    } else if (!isConnected && isStoreConnected) {
+      disconnectWallet()
+    }
+  }, [isConnected, address, isStoreConnected, setWalletConnection, disconnectWallet])
+
+  const handleConnect = async () => {
+    try {
+      await connect({ connector: injected() })
+    } catch (error) {
+      console.error('Failed to connect:', error)
+    }
+  }
+
+  const handleDisconnect = () => {
+    disconnect()
+    disconnectWallet()
+  }
+
   if (!isConnected) {
     return (
       <div className="mx-6 mb-6 p-6 bg-card rounded-xl border border-border">
@@ -17,7 +46,10 @@ export const WalletPanel = () => {
             <p className="text-xs text-muted-foreground mt-0.5">Secure, one-tap connect</p>
           </div>
         </div>
-        <Button onClick={connectWallet} className="w-full h-12" size="lg">
+        <Button 
+          onClick={handleConnect} 
+          className="w-full h-12"
+        >
           Connect Wallet
         </Button>
         <p className="text-xs text-center text-muted-foreground mt-3 flex items-center justify-center gap-2">
@@ -25,7 +57,7 @@ export const WalletPanel = () => {
           <img src={baseLogoInline} alt="Base" className="h-[1em]" />
         </p>
       </div>
-    );
+    )
   }
   
   return (
@@ -37,15 +69,15 @@ export const WalletPanel = () => {
           </div>
           <div>
             <p className="font-mono text-sm">
-              {user?.address.slice(0, 6)}...{user?.address.slice(-4)}
+              {address?.slice(0, 6)}...{address?.slice(-4)}
             </p>
-            <Badge variant="secondary" className="mt-1 text-xs bg-brand text-white">
+            <Badge className="mt-1 text-xs bg-brand text-white">
               Base
             </Badge>
           </div>
         </div>
         <button
-          onClick={disconnectWallet}
+          onClick={handleDisconnect}
           className="p-2 hover:bg-muted rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Disconnect wallet"
         >
@@ -53,5 +85,5 @@ export const WalletPanel = () => {
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
