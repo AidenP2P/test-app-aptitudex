@@ -1,4 +1,4 @@
-import { Award, Flame, Download, AlertTriangle } from 'lucide-react';
+import { Award, Flame, Download, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { WalletPanel } from '@/components/WalletPanel';
 import { MetricCard } from '@/components/MetricCard';
@@ -6,8 +6,11 @@ import { FeatureTile } from '@/components/FeatureTile';
 import { useAppStore } from '@/store/useAppStore';
 import { useAPXToken } from '@/hooks/useAPXToken';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import baseLogo from '@/assets/base-logo.png';
 const Home = () => {
+  console.log('[Home] Component rendering');
+  
   const {
     isConnected,
     user,
@@ -22,6 +25,33 @@ const Home = () => {
     tokenSymbol,
     tokenName
   } = useAPXToken();
+
+  console.log('[Home] State:', {
+    isConnected,
+    user: user ? { address: user.address, isAdmin: user.isAdmin } : null,
+    pendingClaim,
+    formattedBalance,
+    isAdmin,
+    isPaused,
+    isTokenLoading,
+    tokenSymbol,
+    tokenName
+  });
+
+  // Show loading state if token data is still loading and wallet is connected
+  if (isConnected && isTokenLoading) {
+    console.log('[Home] Showing loading state');
+    return (
+      <>
+        <Header title="Aptitude X Base Community" subtitle="On-chain APX token rewards on Base" />
+        <WalletPanel />
+        <div className="px-6 py-12 text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading token data...</p>
+        </div>
+      </>
+    );
+  }
   return <>
       <Header title="Aptitude X Base Community" subtitle="On-chain APX token rewards on Base" />
       

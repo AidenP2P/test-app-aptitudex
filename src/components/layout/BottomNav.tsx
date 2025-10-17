@@ -1,9 +1,18 @@
 import { Home, Award, Download, Activity, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAppStore } from '@/store/useAppStore';
+import { useAPXToken } from '@/hooks/useAPXToken';
 
 export const BottomNav = () => {
   const user = useAppStore((state) => state.user);
+  const { isAdmin: hookIsAdmin } = useAPXToken();
+  
+  console.log('[BottomNav] Admin status:', {
+    userExists: !!user,
+    userIsAdmin: user?.isAdmin,
+    hookIsAdmin,
+    userAddress: user?.address
+  });
   
   const links = [
     { to: '/', icon: Home, label: 'Home' },
@@ -12,7 +21,11 @@ export const BottomNav = () => {
     { to: '/activity', icon: Activity, label: 'Activity' },
   ];
   
-  if (user?.isAdmin) {
+  // Use the hook's isAdmin value as the source of truth
+  const isAdminUser = hookIsAdmin || user?.isAdmin;
+  
+  if (isAdminUser) {
+    console.log('[BottomNav] Adding admin link');
     links.push({ to: '/admin', icon: Settings, label: 'Admin' });
   }
   

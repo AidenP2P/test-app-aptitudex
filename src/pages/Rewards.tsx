@@ -7,10 +7,18 @@ import { Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Rewards = () => {
+  console.log('[Rewards] Component rendering');
+  
   const { rewards, isConnected } = useAppStore();
   const [selectedReward, setSelectedReward] = useState<string | null>(null);
   
-  const reward = rewards.find((r) => r.id === selectedReward);
+  console.log('[Rewards] State:', {
+    rewardsCount: rewards?.length || 0,
+    isConnected,
+    selectedReward
+  });
+  
+  const reward = rewards?.find((r) => r.id === selectedReward);
   
   if (!isConnected) {
     return (
@@ -26,7 +34,7 @@ const Rewards = () => {
     );
   }
   
-  if (rewards.length === 0) {
+  if (!rewards || rewards.length === 0) {
     return (
       <>
         <Header title="My Rewards" subtitle="All your earned kudos" />
