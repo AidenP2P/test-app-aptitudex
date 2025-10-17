@@ -11,8 +11,6 @@ export function useAPXToken() {
   const { address, isConnected } = useAccount()
   const { setKudosBalance, setWalletConnection, user } = useAppStore()
 
-  console.log('[useAPXToken] Hook called:', { address, isConnected })
-
   // Read user balance
   const { data: balance, isLoading: isBalanceLoading, error: balanceError } = useReadContract({
     address: APX_TOKEN_CONFIG.address,
@@ -64,37 +62,10 @@ export function useAPXToken() {
 
   const isLoading = isBalanceLoading || isOwnerLoading || isPausedLoading || isTotalSupplyLoading
 
-  // Log any errors that occur
-  const errors = [
-    balanceError && { type: 'balance', error: balanceError },
-    ownerError && { type: 'owner', error: ownerError },
-    pausedError && { type: 'paused', error: pausedError },
-    totalSupplyError && { type: 'totalSupply', error: totalSupplyError },
-    decimalsError && { type: 'decimals', error: decimalsError },
-  ].filter(Boolean)
-
-  if (errors.length > 0) {
-    console.error('[useAPXToken] Contract read errors:', errors)
-    errors.forEach(({ type, error }) => {
-      console.error(`[useAPXToken] ${type} error:`, error)
-    })
-  }
-
   // Check if current user is admin
   const isAdmin = address && contractOwner ?
     address.toLowerCase() === contractOwner.toLowerCase() :
     false
-
-  console.log('[useAPXToken] Contract data:', {
-    balance: balance?.toString(),
-    contractOwner,
-    isPaused,
-    totalSupply: totalSupply?.toString(),
-    decimals,
-    isAdmin,
-    isLoading,
-    hasErrors: errors.length > 0
-  })
 
   // Format balance for display
   const formattedBalance = balance && decimals ?
@@ -108,36 +79,17 @@ export function useAPXToken() {
 
   // Update store when data changes
   useEffect(() => {
-    console.log('[useAPXToken] useEffect triggered:', {
-      balance: balance?.toString(),
-      decimals,
-      formattedBalance,
-      address,
-      isConnected,
-      isAdmin,
-      userExists: !!user
-    })
-
-    try {
-      if (balance && decimals) {
-        console.log('[useAPXToken] Setting kudos balance:', formattedBalance)
-        setKudosBalance(formattedBalance)
-      }
-      
-      if (address && isConnected) {
-        console.log('[useAPXToken] Setting wallet connection:', { address, isConnected, isAdmin })
-        setWalletConnection(address, true)
-        
-        // Update admin status in user object
-        if (user && user.isAdmin !== isAdmin) {
-          console.log('[useAPXToken] Updating admin status:', { currentAdmin: user.isAdmin, newAdmin: isAdmin })
-          setWalletConnection(address, true) // This will update the user object
-        }
-      }
-    } catch (error) {
-      console.error('[useAPXToken] Error in useEffect:', error)
+    if (balance && decimals) {
+      setKudosBalance(formattedBalance)
     }
-  }, [balance, decimals, formattedBalance, address, isConnected, isAdmin, setKudosBalance, setWalletConnection, user])
+  }, [balance, decimals, formattedBalance, setKudosBalance])
+
+  // Separate useEffect for wallet connection to avoid infinite loops
+  useEffect(() => {
+    if (address && isConnected) {
+      setWalletConnection(address, true)
+    }
+  }, [address, isConnected, setWalletConnection])
 
   return {
     // Token data

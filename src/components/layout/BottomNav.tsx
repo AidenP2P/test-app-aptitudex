@@ -7,13 +7,6 @@ export const BottomNav = () => {
   const user = useAppStore((state) => state.user);
   const { isAdmin: hookIsAdmin } = useAPXToken();
   
-  console.log('[BottomNav] Admin status:', {
-    userExists: !!user,
-    userIsAdmin: user?.isAdmin,
-    hookIsAdmin,
-    userAddress: user?.address
-  });
-  
   const links = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/rewards', icon: Award, label: 'Rewards' },
@@ -25,7 +18,6 @@ export const BottomNav = () => {
   const isAdminUser = hookIsAdmin || user?.isAdmin;
   
   if (isAdminUser) {
-    console.log('[BottomNav] Adding admin link');
     links.push({ to: '/admin', icon: Settings, label: 'Admin' });
   }
   

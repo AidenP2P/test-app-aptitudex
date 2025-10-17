@@ -9,8 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import baseLogo from '@/assets/base-logo.png';
 const Home = () => {
-  console.log('[Home] Component rendering');
-  
   const {
     isConnected,
     user,
@@ -26,21 +24,8 @@ const Home = () => {
     tokenName
   } = useAPXToken();
 
-  console.log('[Home] State:', {
-    isConnected,
-    user: user ? { address: user.address, isAdmin: user.isAdmin } : null,
-    pendingClaim,
-    formattedBalance,
-    isAdmin,
-    isPaused,
-    isTokenLoading,
-    tokenSymbol,
-    tokenName
-  });
-
   // Show loading state if token data is still loading and wallet is connected
   if (isConnected && isTokenLoading) {
-    console.log('[Home] Showing loading state');
     return (
       <>
         <Header title="Aptitude X Base Community" subtitle="On-chain APX token rewards on Base" />
