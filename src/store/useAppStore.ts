@@ -5,6 +5,9 @@ export interface User {
   address: string;
   isAdmin: boolean;
   streakDays: number;
+  // APX-specific data
+  apxBalance?: string;
+  isAPXOwner?: boolean;
 }
 
 export interface Reward {
@@ -33,12 +36,19 @@ interface AppStore {
   rewards: Reward[];
   activity: Activity[];
   chainId: number;
-  setWalletConnection: (address: string, connected: boolean) => void;
+  // APX-specific state
+  apxContractOwner: string | null;
+  isContractPaused: boolean;
+  setWalletConnection: (address: string, connected: boolean, isAdmin?: boolean) => void;
   setChainId: (chainId: number) => void;
   disconnectWallet: () => void;
   claimRewards: () => void;
   setKudosBalance: (balance: string) => void;
   setPendingClaim: (amount: string) => void;
+  // APX-specific actions
+  setAPXContractOwner: (owner: string | null) => void;
+  setContractPaused: (paused: boolean) => void;
+  addTransaction: (transaction: Activity) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -49,17 +59,22 @@ export const useAppStore = create<AppStore>((set) => ({
   rewards: [],
   activity: [],
   chainId: base.id,
+  // APX-specific initial state
+  apxContractOwner: null,
+  isContractPaused: false,
 
-  setWalletConnection: (address: string, connected: boolean) => {
+  setWalletConnection: (address: string, connected: boolean, isAdmin?: boolean) => {
     if (connected) {
-      set({
+      set((state) => ({
         isConnected: true,
         user: {
           address,
-          isAdmin: false,
+          isAdmin: isAdmin || state.apxContractOwner?.toLowerCase() === address.toLowerCase() || false,
           streakDays: 0,
+          apxBalance: state.kudosBalance,
+          isAPXOwner: state.apxContractOwner?.toLowerCase() === address.toLowerCase(),
         },
-      })
+      }))
     } else {
       set({
         isConnected: false,
@@ -106,6 +121,28 @@ export const useAppStore = create<AppStore>((set) => ({
         },
         ...state.activity,
       ],
+    }))
+  },
+
+  // APX-specific actions
+  setAPXContractOwner: (owner: string | null) => {
+    set((state) => ({
+      apxContractOwner: owner,
+      user: state.user ? {
+        ...state.user,
+        isAdmin: state.user.address.toLowerCase() === owner?.toLowerCase(),
+        isAPXOwner: state.user.address.toLowerCase() === owner?.toLowerCase(),
+      } : null,
+    }))
+  },
+
+  setContractPaused: (paused: boolean) => {
+    set({ isContractPaused: paused })
+  },
+
+  addTransaction: (transaction: Activity) => {
+    set((state) => ({
+      activity: [transaction, ...state.activity],
     }))
   },
 }))

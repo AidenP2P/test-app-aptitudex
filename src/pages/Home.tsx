@@ -1,31 +1,75 @@
-import { Award, Flame, Download } from 'lucide-react';
+import { Award, Flame, Download, AlertTriangle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { WalletPanel } from '@/components/WalletPanel';
 import { MetricCard } from '@/components/MetricCard';
 import { FeatureTile } from '@/components/FeatureTile';
 import { useAppStore } from '@/store/useAppStore';
+import { useAPXToken } from '@/hooks/useAPXToken';
+import { Badge } from '@/components/ui/badge';
 import baseLogo from '@/assets/base-logo.png';
 const Home = () => {
   const {
     isConnected,
-    kudosBalance,
     user,
     pendingClaim
   } = useAppStore();
+  
+  const {
+    formattedBalance,
+    isAdmin,
+    isPaused,
+    isLoading: isTokenLoading,
+    tokenSymbol,
+    tokenName
+  } = useAPXToken();
   return <>
-      <Header title="Aptitude X Base Community" subtitle="On-chain app for team recognition and reward" />
+      <Header title="Aptitude X Base Community" subtitle="On-chain APX token rewards on Base" />
       
       <WalletPanel />
       
       {isConnected && <>
+          {isPaused && (
+            <div className="px-6 mb-4">
+              <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                <div>
+                  <p className="text-sm font-medium text-destructive">Contract Paused</p>
+                  <p className="text-xs text-destructive/80">Token transfers are temporarily disabled</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="px-6 mb-8">
-            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-              Your Stats
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Your Stats
+              </p>
+              {isAdmin && (
+                <Badge variant="secondary" className="text-xs">
+                  Admin
+                </Badge>
+              )}
+            </div>
             <div className="grid grid-cols-3 gap-3">
-              <MetricCard icon={Award} label="My Kudos" value={kudosBalance} />
-              <MetricCard icon={Flame} label="Streak" value={`${user?.streakDays}d`} variant="highlight" />
-              <MetricCard icon={Download} label="Pending" value={pendingClaim} variant={Number(pendingClaim) > 0 ? 'highlight' : 'default'} />
+              <MetricCard
+                icon={Award}
+                label={`My ${tokenSymbol}`}
+                value={isTokenLoading ? 'Loading...' : formattedBalance}
+                variant="default"
+              />
+              <MetricCard
+                icon={Flame}
+                label="Streak"
+                value={`${user?.streakDays}d`}
+                variant="highlight"
+              />
+              <MetricCard
+                icon={Download}
+                label="Pending"
+                value={pendingClaim}
+                variant={Number(pendingClaim) > 0 ? 'highlight' : 'default'}
+              />
             </div>
           </div>
           
@@ -34,16 +78,44 @@ const Home = () => {
               Quick Actions
             </p>
             <div className="space-y-3">
-              <FeatureTile icon={Award} title="My Rewards" description="View all earned kudos and rewards" to="/rewards" />
-              <FeatureTile icon={Download} title="Claim" description="Claim pending rewards to your wallet" to="/claim" />
-              <FeatureTile icon={Award} title="Activity" description="View your transaction history" to="/activity" />
+              <FeatureTile
+                icon={Award}
+                title="My Rewards"
+                description="View all earned APX tokens and rewards"
+                to="/rewards"
+              />
+              <FeatureTile
+                icon={Download}
+                title="Claim"
+                description={isPaused ? "Transfers disabled (contract paused)" : "Transfer APX tokens or claim rewards"}
+                to="/claim"
+              />
+              <FeatureTile
+                icon={Award}
+                title="Activity"
+                description="View your transaction history"
+                to="/activity"
+              />
+              {isAdmin && (
+                <FeatureTile
+                  icon={Award}
+                  title="Admin Console"
+                  description="Mint tokens and manage contract"
+                  to="/admin"
+                />
+              )}
             </div>
           </div>
         </>}
       
-      {!isConnected && <div className="px-6 pb-8 flex items-center justify-center gap-2">
-          <p className="text-sm text-muted-foreground">On-chain, for the Base community.</p>
-          
+      {!isConnected && <div className="px-6 pb-8 flex flex-col items-center gap-4">
+          <p className="text-sm text-muted-foreground text-center">
+            Connect your wallet to interact with APX tokens on Base mainnet
+          </p>
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Token Contract</p>
+            <p className="font-mono text-xs">0x1A51...3dD3</p>
+          </div>
         </div>}
     </>;
 };

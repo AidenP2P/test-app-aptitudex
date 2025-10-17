@@ -2,18 +2,43 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { useAppStore } from '@/store/useAppStore';
-import { Settings, Send, FileText, Users } from 'lucide-react';
+import { Settings, Send, FileText, Users, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useAPXToken } from '@/hooks/useAPXToken';
+import { useAPXMint, useAPXPause } from '@/hooks/useAPXMint';
+import { isAddress } from 'viem';
 
 const Admin = () => {
   const { user, isConnected } = useAppStore();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'issue' | 'rules' | 'allowlist'>('issue');
+  const [activeTab, setActiveTab] = useState<'issue' | 'rules' | 'allowlist' | 'contract'>('issue');
+  
+  // APX Token hooks
+  const {
+    isAdmin,
+    isPaused,
+    formattedTotalSupply,
+    contractOwner,
+    isLoading: isTokenLoading
+  } = useAPXToken();
+  
+  const {
+    mintTokens,
+    isPending: isMinting,
+    isSuccess: isMintSuccess
+  } = useAPXMint();
+  
+  const {
+    togglePause,
+    isPending: isPauseToggling,
+    isSuccess: isPauseSuccess
+  } = useAPXPause();
   
   // Issue reward state
   const [issueAddress, setIssueAddress] = useState('');
@@ -31,17 +56,33 @@ const Admin = () => {
   const [allowlist] = useState(['0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1']);
   
   // Redirect if not admin
-  if (!isConnected || !user?.isAdmin) {
+  if (!isConnected || !isAdmin) {
     navigate('/');
     return null;
   }
   
-  const handleIssueReward = (e: React.FormEvent) => {
+  const handleIssueReward = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(`Issued ${issueAmount} kudos to ${issueAddress.slice(0, 6)}...`);
-    setIssueAddress('');
-    setIssueAmount('');
-    setIssueNote('');
+    
+    if (!isAddress(issueAddress)) {
+      toast.error('Invalid address format');
+      return;
+    }
+    
+    if (!issueAmount || Number(issueAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    
+    try {
+      await mintTokens(issueAddress as `0x${string}`, issueAmount);
+      // Reset form on success
+      setIssueAddress('');
+      setIssueAmount('');
+      setIssueNote('');
+    } catch (error) {
+      console.error('Failed to mint tokens:', error);
+    }
   };
   
   const handleDefineRule = (e: React.FormEvent) => {
@@ -96,14 +137,30 @@ const Admin = () => {
             <Users className="w-4 h-4" />
             Allowlist
           </button>
+          <button
+            onClick={() => setActiveTab('contract')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
+              activeTab === 'contract'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card border border-border text-foreground hover:border-primary/30'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            Contract
+          </button>
         </div>
         
         {activeTab === 'issue' && (
           <form onSubmit={handleIssueReward} className="p-6 bg-card rounded-xl border border-border">
-            <h3 className="font-semibold text-lg mb-4">Issue Reward</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg">Mint APX Tokens</h3>
+              {isPaused && (
+                <Badge variant="destructive">Contract Paused</Badge>
+              )}
+            </div>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="address">User Address</Label>
+                <Label htmlFor="address">Recipient Address</Label>
                 <Input
                   id="address"
                   type="text"
@@ -112,33 +169,51 @@ const Admin = () => {
                   onChange={(e) => setIssueAddress(e.target.value)}
                   required
                   className="mt-1.5"
+                  disabled={isPaused || isMinting}
                 />
+                {issueAddress && !isAddress(issueAddress) && (
+                  <p className="text-sm text-destructive mt-1">Invalid address format</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount">Amount (APX)</Label>
                 <Input
                   id="amount"
                   type="number"
                   placeholder="100"
+                  step="0.000001"
+                  min="0"
                   value={issueAmount}
                   onChange={(e) => setIssueAmount(e.target.value)}
                   required
                   className="mt-1.5"
+                  disabled={isPaused || isMinting}
                 />
               </div>
               <div>
                 <Label htmlFor="note">Note (optional)</Label>
                 <Textarea
                   id="note"
-                  placeholder="Reason for reward..."
+                  placeholder="Reason for minting..."
                   value={issueNote}
                   onChange={(e) => setIssueNote(e.target.value)}
                   className="mt-1.5"
+                  disabled={isPaused || isMinting}
                 />
               </div>
-              <Button type="submit" className="w-full h-12" size="lg">
-                Issue Reward
+              <Button
+                type="submit"
+                className="w-full h-12"
+                size="lg"
+                disabled={isPaused || isMinting || !issueAddress || !issueAmount}
+              >
+                {isMinting ? 'Minting...' : `Mint ${issueAmount || '0'} APX`}
               </Button>
+              {isPaused && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Contract is paused. Unpause to mint tokens.
+                </p>
+              )}
             </div>
           </form>
         )}
@@ -242,6 +317,76 @@ const Admin = () => {
                     <span className="font-mono text-sm">{address}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'contract' && (
+          <div className="space-y-4">
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Contract Information</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Contract Address</span>
+                  <span className="font-mono text-sm">0x1A51...3dD3</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Owner</span>
+                  <span className="font-mono text-sm">
+                    {contractOwner ? `${contractOwner.slice(0, 6)}...${contractOwner.slice(-4)}` : 'Loading...'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total Supply</span>
+                  <span className="font-semibold">{formattedTotalSupply} APX</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <Badge variant={isPaused ? 'destructive' : 'default'}>
+                    {isPaused ? 'Paused' : 'Active'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Contract Controls</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <div>
+                    <div className="font-medium">Contract Status</div>
+                    <div className="text-sm text-muted-foreground">
+                      {isPaused ? 'Contract is paused - no transfers allowed' : 'Contract is active'}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={togglePause}
+                    disabled={isPauseToggling || isTokenLoading}
+                    variant={isPaused ? 'default' : 'destructive'}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    {isPauseToggling ? (
+                      'Processing...'
+                    ) : isPaused ? (
+                      <>
+                        <Play className="w-4 h-4" />
+                        Unpause
+                      </>
+                    ) : (
+                      <>
+                        <Pause className="w-4 h-4" />
+                        Pause
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="text-xs text-muted-foreground">
+                  <p><strong>Warning:</strong> Pausing the contract will prevent all token transfers, including minting.</p>
+                  <p>Only the contract owner can pause/unpause the contract.</p>
+                </div>
               </div>
             </div>
           </div>

@@ -1,66 +1,22 @@
-import { useEffect } from 'react'
-import { useAccount, useContractRead } from 'wagmi'
-import { useAppStore } from '@/store/useAppStore'
-import { type Address } from 'viem'
+import { useAPXToken } from './useAPXToken'
 
-const KUDOS_ADDRESS = '0x0000000000000000000000000000000000000000' as Address // Replace with actual contract address
-
-const KUDOS_ABI = [
-  {
-    name: 'balanceOf',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'getPendingRewards',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
-  }
-] as const
-
+/**
+ * Legacy hook for backwards compatibility
+ * Now uses the real APX token contract
+ */
 export function useKudos() {
-  const { address } = useAccount()
-  const { setKudosBalance, setPendingClaim } = useAppStore()
-
-  // Get kudos balance
-  const { data: balance, isLoading: isBalanceLoading } = useContractRead({
-    abi: KUDOS_ABI,
-    address: KUDOS_ADDRESS,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: Boolean(address),
-    }
-  })
-
-  // Get pending rewards
-  const { data: pendingRewards, isLoading: isPendingLoading } = useContractRead({
-    abi: KUDOS_ABI,
-    address: KUDOS_ADDRESS,
-    functionName: 'getPendingRewards',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: Boolean(address),
-    }
-  })
-
-  // Update store when data changes
-  useEffect(() => {
-    if (balance) {
-      setKudosBalance(balance.toString())
-    }
-    if (pendingRewards) {
-      setPendingClaim(pendingRewards.toString())
-    }
-  }, [balance, pendingRewards, setKudosBalance, setPendingClaim])
+  const apxData = useAPXToken()
 
   return {
-    balance,
-    pendingRewards,
-    isLoading: isBalanceLoading || isPendingLoading
+    balance: apxData.balance,
+    pendingRewards: 0n, // APX token doesn't have pending rewards concept
+    isLoading: apxData.isLoading,
+    // Additional APX-specific data
+    formattedBalance: apxData.formattedBalance,
+    isAdmin: apxData.isAdmin,
+    isPaused: apxData.isPaused,
+    tokenAddress: apxData.tokenAddress,
+    tokenSymbol: apxData.tokenSymbol,
+    tokenName: apxData.tokenName,
   }
 }

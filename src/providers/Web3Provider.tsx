@@ -36,3 +36,8 @@ export function Web3Provider({ children }: Web3ProviderProps): React.JSX.Element
 
 // Export useful hooks for the application
 export { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi'
+
+// Export APX-specific hooks
+export { useAPXToken } from '@/hooks/useAPXToken'
+export { useAPXMint, useAPXPause } from '@/hooks/useAPXMint'
+export { useAPXBurn } from '@/hooks/useAPXBurn'
