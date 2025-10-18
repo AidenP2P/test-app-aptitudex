@@ -60,7 +60,6 @@ We believe recognition should become **ownership**, and Base is the right place 
 
 ## 🚀 Quick start (local)
 
-```bash
 # 1) Install
 npm i
 
