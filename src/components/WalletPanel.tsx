@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
+import { useCurrentUserENS } from '@/hooks/useENSName'
 import baseLogoInline from '@/assets/base-logo-inline.png'
 
 export const WalletPanel = () => {
@@ -13,6 +14,7 @@ export const WalletPanel = () => {
   const { address, isConnected } = useAccount()
   const { connect } = useConnect()
   const { disconnect } = useDisconnect()
+  const { ensName, isLoading: isENSLoading, hasENS } = useCurrentUserENS()
 
   // Sync wagmi connection state with our store
   useEffect(() => {
@@ -68,12 +70,24 @@ export const WalletPanel = () => {
             <Wallet className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="font-mono text-sm">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
-            </p>
-            <Badge className="mt-1 text-xs bg-brand text-white">
-              Base
-            </Badge>
+            <div className="flex items-center gap-2">
+              <p className="font-mono text-sm">
+                {hasENS ? ensName : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
+              </p>
+              {isENSLoading && (
+                <div className="w-3 h-3 border border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
+              )}
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <Badge className="text-xs bg-brand text-white">
+                Base
+              </Badge>
+              {hasENS && (
+                <Badge variant="outline" className="text-xs">
+                  ENS
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
         <button

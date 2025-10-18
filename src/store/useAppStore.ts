@@ -21,11 +21,31 @@ export interface Reward {
 
 export interface Activity {
   id: string;
-  type: 'claim' | 'earn' | 'issue';
+  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus';
   amount: string;
   date: string;
   tx?: string;
   description?: string;
+  // Additional fields for new claim system
+  streakDay?: number; // For tracking which day of streak this was
+  isStreakBonus?: boolean; // If this is a streak bonus reward
+  frequency?: 'daily' | 'weekly'; // For new claim types
+  fromAddress?: string; // For transfers
+  toAddress?: string; // For transfers
+}
+
+// New interface for claim system
+export interface ClaimData {
+  lastDailyClaim: string | null; // ISO date
+  lastWeeklyClaim: string | null; // ISO date
+  currentDailyStreak: number;
+  currentWeeklyStreak: number;
+  totalDailyClaims: number;
+  totalWeeklyClaims: number;
+  canClaimDaily: boolean;
+  canClaimWeekly: boolean;
+  nextDailyClaimTime: string | null; // ISO datetime
+  nextWeeklyClaimTime: string | null; // ISO datetime
 }
 
 interface AppStore {
@@ -39,6 +59,8 @@ interface AppStore {
   // APX-specific state
   apxContractOwner: string | null;
   isContractPaused: boolean;
+  // New claim system state
+  claimData: ClaimData;
   setWalletConnection: (address: string, connected: boolean, isAdmin?: boolean) => void;
   setChainId: (chainId: number) => void;
   disconnectWallet: () => void;
@@ -49,6 +71,9 @@ interface AppStore {
   setAPXContractOwner: (owner: string | null) => void;
   setContractPaused: (paused: boolean) => void;
   addTransaction: (transaction: Activity) => void;
+  // New claim system actions
+  updateClaimData: (claimData: Partial<ClaimData>) => void;
+  addClaimActivity: (type: 'daily_claim' | 'weekly_claim' | 'streak_bonus', amount: string, streakDay?: number) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -62,6 +87,19 @@ export const useAppStore = create<AppStore>((set) => ({
   // APX-specific initial state
   apxContractOwner: null,
   isContractPaused: false,
+  // New claim system initial state
+  claimData: {
+    lastDailyClaim: null,
+    lastWeeklyClaim: null,
+    currentDailyStreak: 0,
+    currentWeeklyStreak: 0,
+    totalDailyClaims: 0,
+    totalWeeklyClaims: 0,
+    canClaimDaily: true,
+    canClaimWeekly: true,
+    nextDailyClaimTime: null,
+    nextWeeklyClaimTime: null,
+  },
 
   setWalletConnection: (address: string, connected: boolean, isAdmin?: boolean) => {
     if (connected) {
@@ -143,6 +181,35 @@ export const useAppStore = create<AppStore>((set) => ({
   addTransaction: (transaction: Activity) => {
     set((state) => ({
       activity: [transaction, ...state.activity],
+    }))
+  },
+
+  // New claim system actions
+  updateClaimData: (newClaimData: Partial<ClaimData>) => {
+    set((state) => ({
+      claimData: { ...state.claimData, ...newClaimData },
+    }))
+  },
+
+  addClaimActivity: (type: 'daily_claim' | 'weekly_claim' | 'streak_bonus', amount: string, streakDay?: number) => {
+    set((state) => ({
+      activity: [
+        {
+          id: `${type}_${Date.now()}`,
+          type,
+          amount,
+          date: new Date().toISOString(),
+          description: type === 'daily_claim'
+            ? 'Daily reward claimed'
+            : type === 'weekly_claim'
+            ? 'Weekly reward claimed'
+            : `Streak bonus (${streakDay} ${streakDay === 1 ? 'day' : 'days'})`,
+          streakDay,
+          isStreakBonus: type === 'streak_bonus',
+          frequency: type.includes('daily') ? 'daily' : 'weekly',
+        },
+        ...state.activity,
+      ],
     }))
   },
 }))

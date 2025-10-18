@@ -6,12 +6,13 @@ import { Activity as ActivityIcon } from 'lucide-react';
 
 const Activity = () => {
   const { activity, isConnected } = useAppStore();
-  const [filter, setFilter] = useState<'all' | 'earned' | 'claimed'>('all');
+  const [filter, setFilter] = useState<'all' | 'earned' | 'claimed' | 'claims'>('all');
   
   const filteredActivity = activity.filter((item) => {
     if (filter === 'all') return true;
     if (filter === 'earned') return item.type === 'earn';
     if (filter === 'claimed') return item.type === 'claim';
+    if (filter === 'claims') return ['daily_claim', 'weekly_claim', 'streak_bonus'].includes(item.type);
     return true;
   });
   
@@ -35,7 +36,7 @@ const Activity = () => {
       
       <div className="px-6 pb-8">
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {(['all', 'earned', 'claimed'] as const).map((f) => (
+          {(['all', 'earned', 'claimed', 'claims'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -45,7 +46,7 @@ const Activity = () => {
                   : 'bg-card border border-border text-foreground hover:border-primary/30'
               }`}
             >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === 'claims' ? 'Daily/Weekly Claims' : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
         </div>
