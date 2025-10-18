@@ -1,13 +1,12 @@
-import { Award, Flame, Download, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Award, Flame, Download, AlertTriangle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { WalletPanel } from '@/components/WalletPanel';
 import { MetricCard } from '@/components/MetricCard';
 import { FeatureTile } from '@/components/FeatureTile';
 import { useAppStore } from '@/store/useAppStore';
 import { useAPXToken } from '@/hooks/useAPXToken';
+import { useClaimData } from '@/hooks/useClaimDistributor';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import baseLogo from '@/assets/base-logo.png';
 const Home = () => {
   const {
     isConnected,
@@ -23,6 +22,12 @@ const Home = () => {
     tokenSymbol,
     tokenName
   } = useAPXToken();
+
+  // Nouveau système ClaimDistributor - seulement pour les statistiques
+  const {
+    userClaimData,
+    isPaymasterEnabled
+  } = useClaimData();
 
   // Show loading state if token data is still loading and wallet is connected
   if (isConnected && isTokenLoading) {
@@ -75,8 +80,8 @@ const Home = () => {
               />
               <MetricCard
                 icon={Flame}
-                label="Streak"
-                value={`${user?.streakDays}d`}
+                label="Daily Streak"
+                value={`${userClaimData ? Number(userClaimData.currentDailyStreak) : 0}d`}
                 variant="highlight"
               />
               <MetricCard
@@ -87,6 +92,29 @@ const Home = () => {
               />
             </div>
           </div>
+
+          {/* Additional Stats Section */}
+          {userClaimData && (
+            <div className="px-6 mb-8">
+              <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+                Claim Statistics
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <MetricCard
+                  icon={Award}
+                  label="Total Claims"
+                  value={`${Number(userClaimData.totalDailyClaims) + Number(userClaimData.totalWeeklyClaims)}`}
+                  variant="default"
+                />
+                <MetricCard
+                  icon={Download}
+                  label="APX Claimed"
+                  value={`${(Number(userClaimData.lifetimeAPXClaimed) / 1e18).toFixed(0)}`}
+                  variant="highlight"
+                />
+              </div>
+            </div>
+          )}
           
           <div className="px-6 pb-8">
             <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
@@ -101,8 +129,13 @@ const Home = () => {
               />
               <FeatureTile
                 icon={Download}
-                title="Claim"
-                description={isPaused ? "Transfers disabled (contract paused)" : "Transfer APX tokens or claim rewards"}
+                title="Daily & Weekly Claims"
+                description={isPaymasterEnabled
+                  ? "Claim your APX rewards (gas-free!)"
+                  : isPaused
+                    ? "Claims disabled (contract paused)"
+                    : "Claim your daily and weekly APX rewards"
+                }
                 to="/claim"
               />
               <FeatureTile

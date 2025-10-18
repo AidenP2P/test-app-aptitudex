@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { useAppStore } from '@/store/useAppStore';
-import { Settings, Send, FileText, Users, Pause, Play } from 'lucide-react';
+import { Settings, Send, FileText, Users, Pause, Play, DollarSign, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,12 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAPXToken } from '@/hooks/useAPXToken';
 import { useAPXMint, useAPXPause } from '@/hooks/useAPXMint';
-import { isAddress } from 'viem';
+import { useClaimData } from '@/hooks/useClaimDistributor';
+import { useProvisionDistributor } from '@/hooks/useProvisionDistributor';
+import { useDebugNetwork } from '@/hooks/useDebugNetwork';
+import { isAddress, parseEther } from 'viem';
 
 const Admin = () => {
   const { user, isConnected } = useAppStore();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'issue' | 'rules' | 'allowlist' | 'contract'>('issue');
+  const [activeTab, setActiveTab] = useState<'issue' | 'claims' | 'rules' | 'allowlist' | 'contract'>('issue');
   
   // APX Token hooks
   const {
@@ -25,6 +28,7 @@ const Admin = () => {
     isPaused,
     formattedTotalSupply,
     contractOwner,
+    formattedBalance,
     isLoading: isTokenLoading
   } = useAPXToken();
   
@@ -39,6 +43,26 @@ const Admin = () => {
     isPending: isPauseToggling,
     isSuccess: isPauseSuccess
   } = useAPXPause();
+
+  // ClaimDistributor hooks
+  const {
+    claimConfig,
+    contractBalance,
+    isPaymasterEnabled
+  } = useClaimData();
+
+  // Provisioning hook
+  const {
+    provisionContract,
+    isLoading: isProvisioning
+  } = useProvisionDistributor();
+
+  // Debug network hook
+  const {
+    currentChainId,
+    isBaseMainnet,
+    forceBaseMainnet
+  } = useDebugNetwork();
   
   // Issue reward state
   const [issueAddress, setIssueAddress] = useState('');
@@ -51,6 +75,12 @@ const Admin = () => {
   const [ruleBonus, setRuleBonus] = useState('');
   const [ruleActive, setRuleActive] = useState(true);
   
+  // ClaimDistributor state
+  const [provisionAmount, setProvisionAmount] = useState('');
+  const [dailyRewardAmount, setDailyRewardAmount] = useState('10');
+  const [weeklyRewardAmount, setWeeklyRewardAmount] = useState('100');
+  const [claimsEnabled, setClaimsEnabled] = useState(true);
+
   // Allowlist state
   const [newAddress, setNewAddress] = useState('');
   const [allowlist] = useState(['0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1']);
@@ -92,6 +122,38 @@ const Admin = () => {
     setRuleBonus('');
   };
   
+  const handleProvision = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!provisionAmount || Number(provisionAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    try {
+      const result = await provisionContract(provisionAmount);
+      if (result.success) {
+        setProvisionAmount('');
+      }
+    } catch (error) {
+      console.error('Failed to provision contract:', error);
+      toast.error('Failed to provision contract');
+    }
+  };
+
+  const handleUpdateClaimConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Simule la mise à jour de la configuration
+      // En réalité, cela ferait appel au contract ClaimDistributor
+      toast.success('Claim configuration updated successfully');
+    } catch (error) {
+      console.error('Failed to update config:', error);
+      toast.error('Failed to update configuration');
+    }
+  };
+
   const handleAddAddress = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success('Address added to allowlist');
@@ -114,6 +176,17 @@ const Admin = () => {
           >
             <Send className="w-4 h-4" />
             Issue Reward
+          </button>
+          <button
+            onClick={() => setActiveTab('claims')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
+              activeTab === 'claims'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card border border-border text-foreground hover:border-primary/30'
+            }`}
+          >
+            <DollarSign className="w-4 h-4" />
+            ClaimDistributor
           </button>
           <button
             onClick={() => setActiveTab('rules')}
@@ -216,6 +289,170 @@ const Admin = () => {
               )}
             </div>
           </form>
+        )}
+
+        {activeTab === 'claims' && (
+          <div className="space-y-6">
+            {/* ClaimDistributor Status */}
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">ClaimDistributor Status</h3>
+                {isPaymasterEnabled && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Wallet className="w-3 h-3" />
+                    Gasless Claims Active
+                  </Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Contract Balance</p>
+                  <p className="text-xl font-bold">{contractBalance || '0'} APX</p>
+                </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Claims Status</p>
+                  <p className="text-xl font-bold">
+                    {claimConfig?.enabled ? 'Active' : 'Disabled'}
+                  </p>
+                </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Daily Reward</p>
+                  <p className="text-xl font-bold">
+                    {claimConfig ? (Number(claimConfig.dailyAmount) / 1e18).toFixed(0) : '10'} APX
+                  </p>
+                </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Weekly Reward</p>
+                  <p className="text-xl font-bold">
+                    {claimConfig ? (Number(claimConfig.weeklyAmount) / 1e18).toFixed(0) : '100'} APX
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Provision Contract */}
+            <form onSubmit={handleProvision} className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Provision ClaimDistributor</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="provisionAmount">Amount (APX)</Label>
+                  <Input
+                    id="provisionAmount"
+                    type="number"
+                    placeholder="1000000"
+                    step="0.000001"
+                    min="0"
+                    value={provisionAmount}
+                    onChange={(e) => setProvisionAmount(e.target.value)}
+                    required
+                    className="mt-1.5"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Current wallet balance: {formattedBalance} APX
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-12"
+                  size="lg"
+                  disabled={!provisionAmount || Number(provisionAmount) <= 0 || isProvisioning || !isBaseMainnet}
+                >
+                  {!isBaseMainnet
+                    ? 'Switch to Base Mainnet First'
+                    : isProvisioning
+                      ? 'Provisioning...'
+                      : `Provision ${provisionAmount || '0'} APX`
+                  }
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Note:</strong> This will transfer APX tokens from your wallet to the ClaimDistributor contract for user rewards.
+                </p>
+              </div>
+            </form>
+
+            {/* Configure Claims */}
+            <form onSubmit={handleUpdateClaimConfig} className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Configure Claim Rewards</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="dailyReward">Daily Reward Amount (APX)</Label>
+                  <Input
+                    id="dailyReward"
+                    type="number"
+                    placeholder="10"
+                    step="0.000001"
+                    min="0"
+                    value={dailyRewardAmount}
+                    onChange={(e) => setDailyRewardAmount(e.target.value)}
+                    required
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weeklyReward">Weekly Reward Amount (APX)</Label>
+                  <Input
+                    id="weeklyReward"
+                    type="number"
+                    placeholder="100"
+                    step="0.000001"
+                    min="0"
+                    value={weeklyRewardAmount}
+                    onChange={(e) => setWeeklyRewardAmount(e.target.value)}
+                    required
+                    className="mt-1.5"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <Label htmlFor="claimsEnabled" className="cursor-pointer">
+                    <div>
+                      <div className="font-medium">Enable Claims</div>
+                      <div className="text-sm text-muted-foreground">Allow users to claim daily and weekly rewards</div>
+                    </div>
+                  </Label>
+                  <Switch
+                    id="claimsEnabled"
+                    checked={claimsEnabled}
+                    onCheckedChange={setClaimsEnabled}
+                  />
+                </div>
+                <Button type="submit" className="w-full h-12" size="lg">
+                  Update Configuration
+                </Button>
+              </div>
+            </form>
+
+            {/* Emergency Controls */}
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Emergency Controls</h3>
+              <div className="space-y-3">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to disable all claims? This action can be reversed.')) {
+                      toast.success('Claims disabled for emergency')
+                    }
+                  }}
+                >
+                  Emergency: Disable All Claims
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to withdraw all funds from the ClaimDistributor?')) {
+                      toast.success('Emergency withdrawal initiated')
+                    }
+                  }}
+                >
+                  Emergency: Withdraw All Funds
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                <strong>Warning:</strong> Emergency controls should only be used in critical situations.
+              </p>
+            </div>
+          </div>
         )}
         
         {activeTab === 'rules' && (

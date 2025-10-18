@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, ArrowRight, Loader2, Send, Trash2, AlertTriangle } from 'lucide-react'
+import { Download, ArrowRight, Loader2, Send, Trash2, AlertTriangle, RefreshCw, Zap } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,8 @@ import { toast } from 'sonner'
 import { useAPXToken } from '@/hooks/useAPXToken'
 import { useClaimRewards } from '@/hooks/useClaimRewards'
 import { useAPXBurn } from '@/hooks/useAPXBurn'
+import { useClaimDistributor } from '@/hooks/useClaimDistributor'
+import { ClaimCard } from '@/components/ClaimCard'
 import { cn } from '@/lib/utils'
 import { isAddress } from 'viem'
 
@@ -19,19 +21,31 @@ const Claim = () => {
   const navigate = useNavigate()
   
   // APX Token hooks
-  const { 
-    formattedBalance, 
-    balance, 
-    isPaused, 
+  const {
+    formattedBalance,
+    balance,
+    isPaused,
     tokenSymbol,
-    isLoading: isTokenLoading 
+    isLoading: isTokenLoading
   } = useAPXToken()
   
   const { claimRewards, transferAPX, isPending, isSuccess } = useClaimRewards()
   const { burnTokens, isPending: isBurning, isSuccess: isBurnSuccess } = useAPXBurn()
   
+  // Nouveau système ClaimDistributor
+  const {
+    userClaimData,
+    availability,
+    contractBalance,
+    isLoading: isClaimLoading,
+    isPaymasterEnabled,
+    claimDaily,
+    claimWeekly,
+    refresh
+  } = useClaimDistributor()
+  
   // Form state
-  const [activeTab, setActiveTab] = useState<'claim' | 'send' | 'burn'>('claim')
+  const [activeTab, setActiveTab] = useState<'claims' | 'overview' | 'send' | 'burn'>('claims')
   const [sendAddress, setSendAddress] = useState('')
   const [sendAmount, setSendAmount] = useState('')
   const [burnAmount, setBurnAmount] = useState('')
@@ -96,15 +110,24 @@ const Claim = () => {
       console.error('Failed to burn tokens:', error)
     }
   }
+
+  // Wrappers pour les fonctions de claim qui ignorent les valeurs de retour
+  const handleDailyClaim = async (): Promise<void> => {
+    await claimDaily()
+  }
+
+  const handleWeeklyClaim = async (): Promise<void> => {
+    await claimWeekly()
+  }
   
   if (!isConnected) {
     return (
       <>
-        <Header title="Transfer & Manage" subtitle="Manage your APX tokens" />
+        <Header title="Daily & Weekly Claims" subtitle="Claim your APX token rewards" />
         <div className="px-6 py-12 text-center">
           <Download className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Connect your wallet to manage APX tokens
+            Connect your wallet to access claims and manage APX tokens
           </p>
         </div>
       </>
@@ -116,7 +139,7 @@ const Claim = () => {
   
   return (
     <>
-      <Header title="Transfer & Manage" subtitle={`Manage your ${tokenSymbol} tokens`} />
+      <Header title="Daily & Weekly Claims" subtitle={`Claim your ${tokenSymbol} tokens and manage your wallet`} />
       
       <div className="px-6 pb-8">
         {isPaused && (
@@ -134,15 +157,26 @@ const Claim = () => {
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <button
-            onClick={() => setActiveTab('claim')}
+            onClick={() => setActiveTab('claims')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
-              activeTab === 'claim'
+              activeTab === 'claims'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card border border-border text-foreground hover:border-primary/30'
+            }`}
+          >
+            <Download className="w-4 h-4" />
+            Daily & Weekly Claims
+          </button>
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
+              activeTab === 'overview'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card border border-border text-foreground hover:border-primary/30'
             }`}
           >
             <ArrowRight className="w-4 h-4" />
-            Overview
+            Token Overview
           </button>
           <button
             onClick={() => setActiveTab('send')}
@@ -168,8 +202,144 @@ const Claim = () => {
           </button>
         </div>
 
-        {/* Overview Tab */}
-        {activeTab === 'claim' && (
+        {/* Daily & Weekly Claims Tab */}
+        {activeTab === 'claims' && (
+          <div className="space-y-6">
+            {/* Status Bar */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isPaymasterEnabled && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Zap className="w-3 h-3" />
+                    Gas-free Claims
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={refresh}
+                className="h-8 px-3"
+                disabled={isClaimLoading}
+              >
+                <RefreshCw className={`w-4 h-4 ${isClaimLoading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+
+            {/* Claims Interface */}
+            <div className="space-y-4">
+              {/* Daily Claim */}
+              {availability && (
+                <ClaimCard
+                  type="daily"
+                  title="Daily Reward"
+                  description={isPaymasterEnabled ? "Claim daily APX (gas-free!)" : "Claim your daily APX tokens"}
+                  rewardAmount={availability.dailyRewardAmount}
+                  streakCount={Number(userClaimData?.currentDailyStreak || 0)}
+                  bonusPercentage={availability.dailyBonusPercent}
+                  canClaim={availability.canClaimDaily}
+                  nextClaimTime={availability.nextDailyClaimTime}
+                  isLoading={isClaimLoading}
+                  isAdmin={false} // Plus de restriction admin
+                  onClaim={handleDailyClaim}
+                />
+              )}
+
+              {/* Weekly Claim */}
+              {availability && (
+                <ClaimCard
+                  type="weekly"
+                  title="Weekly Reward"
+                  description={isPaymasterEnabled ? "Claim weekly APX bonus (gas-free!)" : "Claim your weekly APX bonus"}
+                  rewardAmount={availability.weeklyRewardAmount}
+                  streakCount={Number(userClaimData?.currentWeeklyStreak || 0)}
+                  bonusPercentage={availability.weeklyBonusPercent}
+                  canClaim={availability.canClaimWeekly}
+                  nextClaimTime={availability.nextWeeklyClaimTime}
+                  isLoading={isClaimLoading}
+                  isAdmin={false} // Plus de restriction admin
+                  onClaim={handleWeeklyClaim}
+                />
+              )}
+
+              {/* Loading state for claims */}
+              {!availability && isConnected && (
+                <div className="space-y-4">
+                  <div className="p-6 rounded-xl border bg-card animate-pulse">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 bg-muted rounded"></div>
+                        <div>
+                          <div className="w-24 h-4 bg-muted rounded mb-1"></div>
+                          <div className="w-32 h-3 bg-muted rounded"></div>
+                        </div>
+                      </div>
+                      <div className="w-16 h-6 bg-muted rounded"></div>
+                    </div>
+                    <div className="w-full h-12 bg-muted rounded"></div>
+                  </div>
+                  <div className="p-6 rounded-xl border bg-card animate-pulse">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 bg-muted rounded"></div>
+                        <div>
+                          <div className="w-24 h-4 bg-muted rounded mb-1"></div>
+                          <div className="w-32 h-3 bg-muted rounded"></div>
+                        </div>
+                      </div>
+                      <div className="w-16 h-6 bg-muted rounded"></div>
+                    </div>
+                    <div className="w-full h-12 bg-muted rounded"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* User Stats */}
+            {userClaimData && (
+              <div className="p-4 bg-muted rounded-lg">
+                <h3 className="font-medium mb-3">Your Claim Statistics</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Total Daily Claims</p>
+                    <p className="font-semibold">{Number(userClaimData.totalDailyClaims)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Total Weekly Claims</p>
+                    <p className="font-semibold">{Number(userClaimData.totalWeeklyClaims)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Lifetime APX Claimed</p>
+                    <p className="font-semibold">
+                      {userClaimData.lifetimeAPXClaimed
+                        ? (Number(userClaimData.lifetimeAPXClaimed) / 1e18).toFixed(2)
+                        : '0'} APX
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Payment Method</p>
+                    <p className="font-semibold">
+                      {isPaymasterEnabled ? 'Gas-free' : 'Standard'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contract Balance (for reference) */}
+            {contractBalance && (
+              <div className="p-3 bg-card border rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Contract Balance</span>
+                  <span className="font-medium">{contractBalance} APX</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Token Overview Tab */}
+        {activeTab === 'overview' && (
           <div className="space-y-4">
             {/* APX Balance Card */}
             <div className="p-6 bg-card rounded-xl border border-border">

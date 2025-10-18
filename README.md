@@ -1,55 +1,164 @@
-# Welcome to your Lovable project
+AptitudeX (Alpha) — Built for the Base Community
 
-## Project info
+Test it out:
+🔗 https://test.aptitudex.app
 
-**URL**: https://demo.aptitudex.app/
+AptitudeX turns team recognition into on-chain rewards on Base.
+This repo hosts the public alpha for Base Batches 002: a lightweight, mobile-first web app that lets teams or orgs reward contributions with tokens—fair, transparent, programmable.
 
-## How can I edit this code?
+Status: Alpha preview — expect rapid changes. I am building in the open with the Base community and iterating weekly.
 
-There are several ways of editing your application.
+✨ What it does (today)
 
-**Use your preferred IDE**
+Wallet connect (Base 8453) — connect with an injected wallet.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Live token wiring (APX) — read token metadata, balances, and (admin-gated) mint flow.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Mobile-first UI — simple demo surfaces for “recognition → reward”.
 
-Follow these steps:
+Safe fallbacks — if a feature isn’t configured (e.g., sponsored gas), the app degrades gracefully.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+This alpha is for community testing & feedback, not production HR use (yet).
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+🧭 Why (Base Batches 002)
 
-# Step 3: Install the necessary dependencies.
+We believe recognition should become ownership, and Base is the right place to prove it:
+
+Programmable trust: rewards and rules live on-chain.
+
+Transparency: verifiable histories > spreadsheets.
+
+Fun & fair: kudos, milestones, streaks → tokenized incentives.
+
+Base Batches 002 gives us the perfect sandbox to ship fast with real users and real feedback.
+
+🔗 Live surfaces
+
+Demo Preview: https://demo.aptitudex.app
+
+Configurator (Start): https://start.aptitudex.app (wizard to bootstrap an org instance; parts are “coming soon” in alpha)
+
+Example Instance: https://doors3.aptitudex.app (brand-customized preview)
+
+Landing: https://aptitudex.app
+
+Some links/pages may be placeholders while we iterate—PRs and issues welcome.
+
+🧱 Tech & Ecosystem
+
+Base (mainnet 8453) — https://mainnet.base.org
+
+wagmi v2 + viem v2 — wallet, reads/writes
+
+OnchainKit (Coinbase) — identity & Base-first UX primitives (progressively integrated)
+
+ENS resolution (L1 mainnet) — show name/avatar if available, fallback to short address
+
+(Planned) Paymaster / CDP — optional gas sponsorship for select actions
+
+Token (alpha): APX on Base
+0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3
+(Admin-only mint UI appears when the connected address is authorized.)
+
+🚀 Quick start (local)
+# 1) Install
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 2) Configure env
+cp .env.example .env
+# then edit .env
+
+# 3) Run
 npm run dev
-```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+.env (example)
 
-**Use GitHub Codespaces**
+# Chain
+VITE_CHAIN_ID=8453
+VITE_RPC_URL=https://mainnet.base.org
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Token wiring
+VITE_APX_ADDRESS=0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3
+# Optional: gate admin-only UI (no secrets; just an address check)
+VITE_APX_ADMIN=0xF35EeFB35B13d908497BF51Fbc3f0f798f9f93f4
 
-## What technologies are used for this project?
+# ENS (Ethereum mainnet RPC for name/avatar lookups)
+VITE_ETH_MAINNET_RPC_URL=https://ethereum.publicnode.com
 
-This project is built with:
+# CDP Paymaster (server-only when added; do NOT expose in client)
+# CDP_API_KEY=...
+# CDP_PAYMASTER_URL=...
+# CDP_BUNDLER_URL=...
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+
+Never commit or expose private keys or CDP secrets. Any gas sponsorship will run via a server endpoint (Vercel Function) that holds the secret.
+
+🗺️ Roadmap (public)
+
+P0 — Alpha validation (now → 0–3 months)
+
+✅ Wallet connect, Base reads/writes (APX)
+
+✅ Mobile-first demo & example instance
+
+⏳ Base ENS name/avatar in header
+
+⏳ Paymaster (CDP) toggle for sponsored tx on select flows
+
+⏳ Configurator “happy path” (brand + token + rules → JSON)
+
+P1 — Scale foundations (3–9 months)
+
+Org-level configurator → one-click org instance
+
+Audit logs export, basic admin analytics
+
+OnchainKit identity polish, better error surfaces
+
+P2 — Enterprise motion (9–18 months)
+
+SSO/HRIS integrations (lightweight)
+
+Security pack (SOC-lite), DPIA templates
+
+White-label options & partner kits
+
+Feedback drives scope—please open issues with real-world needs.
+
+🧑‍💻 Contributing
+
+We welcome issues, ideas, and PRs:
+
+Bugs/UX: steps to reproduce + screenshots if possible
+
+Features: short problem statement → proposed UX → on-chain implications
+
+Code: keep components small, TypeScript strict, and avoid leaking secrets
+
+Run lint/typecheck before PR:
+
+npm run lint
+npm run build
+
+🔒 Security notes
+
+This is alpha software; use test wallets and small amounts.
+
+Avoid sharing private keys/API keys. If you see a potential secret in the repo or build output, please open a security issue.
+
+🙏 Acknowledgements
+
+Base & Coinbase Developer Platform for tooling, OnchainKit, and community support.
+
+Builders in Base Batches 002 for feedback and inspiration.
+
+📬 Contact
+
+Project: AptitudeX — “Recognition that becomes ownership.”
+
+Say hi / share feedback: open an Issue or reach the maintainer via the repo profile.
+
+📝 License
+
+MIT (see LICENSE). Content and trademarks remain property of their respective owners.
