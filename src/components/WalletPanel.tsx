@@ -1,12 +1,72 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Wallet, Power } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
-import { useCurrentUserENS } from '@/hooks/useENSName'
+import { Identity, Name, Avatar } from '@coinbase/onchainkit/identity'
 import baseLogoInline from '@/assets/base-logo-inline.png'
+
+// Composant pour la pastille ENS avec détection de statut
+const ENSStatusBadge = ({ address }: { address: `0x${string}` | undefined }) => {
+  const [hasENS, setHasENS] = useState(false)
+  const nameRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (nameRef.current && address) {
+      // Observer le contenu du composant Name
+      const observer = new MutationObserver(() => {
+        const textContent = nameRef.current?.textContent || ''
+        // Si le texte ne ressemble pas à une adresse (0x...), c'est probablement un ENS
+        const isAddress = textContent.startsWith('0x') && textContent.length >= 10
+        const ensDetected = !isAddress && textContent.length > 0
+        console.log('🔍 ENS Detection - Text:', textContent, 'IsAddress:', isAddress, 'HasENS:', ensDetected)
+        setHasENS(ensDetected)
+      })
+
+      observer.observe(nameRef.current, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      })
+
+      // Vérification initiale après un délai
+      setTimeout(() => {
+        const textContent = nameRef.current?.textContent || ''
+        const isAddress = textContent.startsWith('0x') && textContent.length >= 10
+        const ensDetected = !isAddress && textContent.length > 0
+        console.log('🔍 ENS Initial Check - Text:', textContent, 'IsAddress:', isAddress, 'HasENS:', ensDetected)
+        setHasENS(ensDetected)
+      }, 500)
+
+      return () => observer.disconnect()
+    }
+  }, [address])
+
+  return (
+    <>
+      {/* Composant invisible pour détecter l'ENS */}
+      <div ref={nameRef} className="hidden">
+        <Identity address={address}>
+          <Name className="text-xs" />
+        </Identity>
+      </div>
+      
+      {/* Badge visible avec style conditionnel */}
+      <Badge
+        variant="outline"
+        className={`text-xs transition-all duration-300 ${
+          hasENS
+            ? 'bg-green-100 text-green-700 border-green-300 shadow-sm'
+            : 'bg-transparent text-gray-500 border-gray-300'
+        }`}
+      >
+        ENS
+      </Badge>
+    </>
+  )
+}
 
 export const WalletPanel = () => {
   const { isConnected: isStoreConnected, setWalletConnection, disconnectWallet } = useAppStore()
@@ -14,11 +74,12 @@ export const WalletPanel = () => {
   const { address, isConnected } = useAccount()
   const { connect } = useConnect()
   const { disconnect } = useDisconnect()
-  const { ensName, isLoading: isENSLoading, hasENS } = useCurrentUserENS()
+  const [hasENS, setHasENS] = useState(false)
 
   // Sync wagmi connection state with our store
   useEffect(() => {
     if (isConnected && address) {
+      console.log('🔍 Wallet connected - Address:', address)
       setWalletConnection(address, true)
     } else if (!isConnected && isStoreConnected) {
       disconnectWallet()
@@ -71,22 +132,20 @@ export const WalletPanel = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-mono text-sm">
-                {hasENS ? ensName : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
-              </p>
-              {isENSLoading && (
-                <div className="w-3 h-3 border border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
-              )}
+              <Identity
+                address={address}
+                className="text-sm font-mono"
+                hasCopyAddressOnClick={false}
+              >
+                <Name className="text-sm font-mono text-foreground" />
+              </Identity>
             </div>
             <div className="flex items-center gap-1 mt-1">
               <Badge className="text-xs bg-brand text-white">
                 Base
               </Badge>
-              {hasENS && (
-                <Badge variant="outline" className="text-xs">
-                  ENS
-                </Badge>
-              )}
+              {/* Hook pour détecter ENS */}
+              <ENSStatusBadge address={address} />
             </div>
           </div>
         </div>

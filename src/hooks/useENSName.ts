@@ -15,7 +15,7 @@ export function useENSName(address: Address | undefined) {
   // ENS Reverse Resolver contract on mainnet
   const ENS_REVERSE_RESOLVER = '0xa2c122be93b0074270ebee7f6b7292c7deb45047' as const
   
-  const { data: resolvedName, isLoading: isResolving } = useReadContract({
+  const { data: resolvedName, isLoading: isResolving, error } = useReadContract({
     address: ENS_REVERSE_RESOLVER,
     abi: [
       {
@@ -35,6 +35,16 @@ export function useENSName(address: Address | undefined) {
       retry: 1,
     },
   })
+
+  // Debug logs
+  useEffect(() => {
+    if (address) {
+      console.log('🔍 ENS Debug - Address:', address)
+      console.log('🔍 ENS Debug - Resolved Name:', resolvedName)
+      console.log('🔍 ENS Debug - Is Loading:', isResolving)
+      console.log('🔍 ENS Debug - Error:', error)
+    }
+  }, [address, resolvedName, isResolving, error])
 
   useEffect(() => {
     if (resolvedName && resolvedName !== '') {
