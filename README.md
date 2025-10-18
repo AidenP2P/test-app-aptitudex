@@ -60,37 +60,37 @@ We believe recognition should become **ownership**, and Base is the right place 
 
 ## 🚀 Quick start (local)
 
-# 1) Install
+### 1) Install
 npm i
 
-# 2) Configure env
+### 2) Configure env
 cp .env.example .env
-# then edit .env
+### then edit .env
 
-# 3) Run
+### 3) Run
 npm run dev
 
-# Chain
+### Chain
 VITE_CHAIN_ID=8453
 VITE_RPC_URL=https://mainnet.base.org
 
-# Token wiring
+### Token wiring
 VITE_APX_ADDRESS=0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3
-# Optional: gate admin-only UI (no secrets; just an address check)
+### Optional: gate admin-only UI (no secrets; just an address check)
 VITE_APX_ADMIN=0xF35EeFB35B13d908497BF51Fbc3f0f798f9f93f4
 
-# ENS (Ethereum mainnet RPC for name/avatar lookups)
+### ENS (Ethereum mainnet RPC for name/avatar lookups)
 VITE_ETH_MAINNET_RPC_URL=https://ethereum.publicnode.com
 
-# CDP Paymaster (server-only when added; do NOT expose in client)
-# CDP_API_KEY=...
-# CDP_PAYMASTER_URL=...
-# CDP_BUNDLER_URL=...
+### CDP Paymaster (server-only when added; do NOT expose in client)
+### CDP_API_KEY=...
+### CDP_PAYMASTER_URL=...
+### CDP_BUNDLER_URL=...
 
 Never commit or expose private keys or CDP secrets. Any gas sponsorship will run via a server endpoint (Vercel Function) that holds the secret.
 
-🗺️ Roadmap (public)
-P0 — Alpha validation (now → 0–3 months)
+## 🗺️ Roadmap (public)
+### P0 — Alpha validation (now → 0–3 months)
 
 ✅ Wallet connect, Base reads/writes (APX)
 
@@ -102,7 +102,7 @@ P0 — Alpha validation (now → 0–3 months)
 
 ⏳ Configurator “happy path” (brand + token + rules → JSON)
 
-P1 — Scale foundations (3–9 months)
+### P1 — Scale foundations (3–9 months)
 
 Org-level configurator → one-click org instance
 
@@ -110,7 +110,7 @@ Audit logs export, basic admin analytics
 
 OnchainKit identity polish, better error surfaces
 
-P2 — Enterprise motion (9–18 months)
+### P2 — Enterprise motion (9–18 months)
 
 SSO/HRIS integrations (lightweight)
 
@@ -120,7 +120,7 @@ White-label options & partner kits
 
 Feedback drives scope — please open issues with real-world needs.
 
-🧑‍💻 Contributing
+# 🧑‍💻 Contributing
 
 We welcome issues, ideas, and PRs:
 
@@ -135,25 +135,23 @@ Run lint/typecheck before PR:
 npm run lint
 npm run build
 
-🔒 Security notes
+# 🔒 Security notes
 
 This is alpha software; use test wallets and small amounts.
 
 Avoid sharing private keys/API keys. If you see a potential secret in the repo or build output, please open a security issue.
 
-🙏 Acknowledgements
+# 🙏 Acknowledgements
 
 Base & Coinbase Developer Platform for tooling, OnchainKit, and community support.
 
 Builders in Base Batches 002 for feedback and inspiration.
 
-📬 Contact
+# 📬 Contact
 
 Project: AptitudeX — “Recognition that becomes ownership.”
 Say hi / share feedback: open an Issue or reach the maintainer via the repo profile.
 
-📝 License
+# 📝 License
 
 MIT (see LICENSE). Content and trademarks remain property of their respective owners.
-
-::contentReference[oaicite:0]{index=0}
