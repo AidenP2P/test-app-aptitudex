@@ -1,66 +1,66 @@
-AptitudeX (Alpha) — Built for the Base Community
+# AptitudeX (Alpha) — Built for the Base Community
 
-Test it out:
+**Test it out:**  
 🔗 https://test.aptitudex.app
 
-AptitudeX turns team recognition into on-chain rewards on Base.
-This repo hosts the public alpha for Base Batches 002: a lightweight, mobile-first web app that lets teams or orgs reward contributions with tokens—fair, transparent, programmable.
+AptitudeX turns team recognition into **on-chain rewards** on **Base**.  
+This repo hosts the public **alpha** for **Base Batches 002**: a lightweight, mobile-first web app that lets teams or orgs reward contributions with tokens — **fair, transparent, programmable**.
 
-Status: Alpha preview — expect rapid changes. I am building in the open with the Base community and iterating weekly.
+> **Status:** Alpha preview — expect rapid changes. I’m building in the open with the Base community and iterating weekly.
 
-✨ What it does (today)
+---
 
-Wallet connect (Base 8453) — connect with an injected wallet.
+## ✨ What it does (today)
 
-Live token wiring (APX) — read token metadata, balances, and (admin-gated) mint flow.
+- **Wallet connect (Base 8453)** — connect with an injected wallet.
+- **Live token wiring (APX)** — read token metadata, balances, and (admin-gated) mint flow.
+- **Mobile-first UI** — simple demo surfaces for “recognition → reward”.
+- **Safe fallbacks** — if a feature isn’t configured (e.g., sponsored gas), the app degrades gracefully.
 
-Mobile-first UI — simple demo surfaces for “recognition → reward”.
+> This alpha is for community testing & feedback, **not** production HR use (yet).
 
-Safe fallbacks — if a feature isn’t configured (e.g., sponsored gas), the app degrades gracefully.
+---
 
-This alpha is for community testing & feedback, not production HR use (yet).
+## 🧭 Why (Base Batches 002)
 
-🧭 Why (Base Batches 002)
+We believe recognition should become **ownership**, and Base is the right place to prove it:
 
-We believe recognition should become ownership, and Base is the right place to prove it:
+- **Programmable trust:** rewards and rules live on-chain.  
+- **Transparency:** verifiable histories > spreadsheets.  
+- **Fun & fair:** kudos, milestones, streaks → tokenized incentives.
 
-Programmable trust: rewards and rules live on-chain.
+**Base Batches 002** gives us the perfect sandbox to ship fast with real users and real feedback.
 
-Transparency: verifiable histories > spreadsheets.
+---
 
-Fun & fair: kudos, milestones, streaks → tokenized incentives.
+## 🔗 Live surfaces
 
-Base Batches 002 gives us the perfect sandbox to ship fast with real users and real feedback.
+- **Demo Preview:** https://demo.aptitudex.app  
+- **Configurator (Start):** https://start.aptitudex.app *(wizard to bootstrap an org instance; parts are “coming soon” in alpha)*  
+- **Example Instance:** https://doors3.aptitudex.app *(brand-customized preview)*  
+- **Landing:** https://aptitudex.app
 
-🔗 Live surfaces
+> Some links/pages may be placeholders while we iterate — PRs and issues welcome.
 
-Demo Preview: https://demo.aptitudex.app
+---
 
-Configurator (Start): https://start.aptitudex.app (wizard to bootstrap an org instance; parts are “coming soon” in alpha)
+## 🧱 Tech & Ecosystem
 
-Example Instance: https://doors3.aptitudex.app (brand-customized preview)
+- **Base (mainnet 8453):** https://mainnet.base.org  
+- **wagmi v2 + viem v2:** wallet, reads/writes  
+- **OnchainKit (Coinbase):** identity & Base-first UX primitives (progressively integrated)  
+- **ENS resolution (L1 mainnet):** show name/avatar if available, fallback to short address  
+- **(Planned) Paymaster / CDP:** optional gas sponsorship for select actions
 
-Landing: https://aptitudex.app
+**Token (alpha):** APX on Base  
+`0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3`  
+*(Admin-only mint UI appears when the connected address is authorized.)*
 
-Some links/pages may be placeholders while we iterate—PRs and issues welcome.
+---
 
-🧱 Tech & Ecosystem
+## 🚀 Quick start (local)
 
-Base (mainnet 8453) — https://mainnet.base.org
-
-wagmi v2 + viem v2 — wallet, reads/writes
-
-OnchainKit (Coinbase) — identity & Base-first UX primitives (progressively integrated)
-
-ENS resolution (L1 mainnet) — show name/avatar if available, fallback to short address
-
-(Planned) Paymaster / CDP — optional gas sponsorship for select actions
-
-Token (alpha): APX on Base
-0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3
-(Admin-only mint UI appears when the connected address is authorized.)
-
-🚀 Quick start (local)
+```bash
 # 1) Install
 npm i
 
@@ -70,9 +70,6 @@ cp .env.example .env
 
 # 3) Run
 npm run dev
-
-
-.env (example)
 
 # Chain
 VITE_CHAIN_ID=8453
@@ -91,11 +88,9 @@ VITE_ETH_MAINNET_RPC_URL=https://ethereum.publicnode.com
 # CDP_PAYMASTER_URL=...
 # CDP_BUNDLER_URL=...
 
-
 Never commit or expose private keys or CDP secrets. Any gas sponsorship will run via a server endpoint (Vercel Function) that holds the secret.
 
 🗺️ Roadmap (public)
-
 P0 — Alpha validation (now → 0–3 months)
 
 ✅ Wallet connect, Base reads/writes (APX)
@@ -124,7 +119,7 @@ Security pack (SOC-lite), DPIA templates
 
 White-label options & partner kits
 
-Feedback drives scope—please open issues with real-world needs.
+Feedback drives scope — please open issues with real-world needs.
 
 🧑‍💻 Contributing
 
@@ -156,9 +151,10 @@ Builders in Base Batches 002 for feedback and inspiration.
 📬 Contact
 
 Project: AptitudeX — “Recognition that becomes ownership.”
-
 Say hi / share feedback: open an Issue or reach the maintainer via the repo profile.
 
 📝 License
 
 MIT (see LICENSE). Content and trademarks remain property of their respective owners.
+
+::contentReference[oaicite:0]{index=0}
