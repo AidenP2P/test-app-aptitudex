@@ -28,11 +28,35 @@ const Home = () => {
   // Nouveau système ClaimDistributor - seulement pour les statistiques
   const {
     userClaimData,
+    availability,
     isPaymasterEnabled
   } = useClaimData();
 
+  // Calcule le total des tokens claimables (Daily + Weekly + Legacy)
+  const getTotalClaimableTokens = () => {
+    let total = 0;
+    
+    // Ajout des legacy pending claims
+    total += Number(pendingClaim) || 0;
+    
+    // Ajout des Daily et Weekly claims disponibles
+    if (availability) {
+      if (availability.canClaimDaily) {
+        total += Number(availability.dailyRewardAmount) || 0;
+      }
+      if (availability.canClaimWeekly) {
+        total += Number(availability.weeklyRewardAmount) || 0;
+      }
+    }
+    
+    return total.toFixed(0);
+  };
+
+  const totalClaimable = getTotalClaimableTokens();
+  const hasClaimableTokens = Number(totalClaimable) > 0;
+
   const handlePendingClick = () => {
-    if (Number(pendingClaim) > 0) {
+    if (hasClaimableTokens) {
       navigate('/claim');
     }
   };
@@ -92,12 +116,12 @@ const Home = () => {
                 value={`${userClaimData ? Number(userClaimData.currentDailyStreak) : 0}d`}
                 variant="highlight"
               />
-              <div onClick={handlePendingClick} className={Number(pendingClaim) > 0 ? 'cursor-pointer' : ''}>
+              <div onClick={handlePendingClick} className={hasClaimableTokens ? 'cursor-pointer' : ''}>
                 <MetricCard
                   icon={Download}
                   label="Pending"
-                  value={pendingClaim}
-                  variant={Number(pendingClaim) > 0 ? 'highlight' : 'default'}
+                  value={totalClaimable}
+                  variant={hasClaimableTokens ? 'highlight' : 'default'}
                 />
               </div>
             </div>
