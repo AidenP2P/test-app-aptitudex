@@ -21,7 +21,7 @@ export interface Reward {
 
 export interface Activity {
   id: string;
-  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus';
+  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus' | 'send' | 'burn';
   amount: string;
   date: string;
   tx?: string;

@@ -7,7 +7,9 @@ import { useAppStore } from '@/store/useAppStore';
 import { useAPXToken } from '@/hooks/useAPXToken';
 import { useClaimData } from '@/hooks/useClaimDistributor';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 const Home = () => {
+  const navigate = useNavigate();
   const {
     isConnected,
     user,
@@ -28,6 +30,12 @@ const Home = () => {
     userClaimData,
     isPaymasterEnabled
   } = useClaimData();
+
+  const handlePendingClick = () => {
+    if (Number(pendingClaim) > 0) {
+      navigate('/claim');
+    }
+  };
 
   // Show loading state if token data is still loading and wallet is connected
   if (isConnected && isTokenLoading) {
@@ -84,12 +92,14 @@ const Home = () => {
                 value={`${userClaimData ? Number(userClaimData.currentDailyStreak) : 0}d`}
                 variant="highlight"
               />
-              <MetricCard
-                icon={Download}
-                label="Pending"
-                value={pendingClaim}
-                variant={Number(pendingClaim) > 0 ? 'highlight' : 'default'}
-              />
+              <div onClick={handlePendingClick} className={Number(pendingClaim) > 0 ? 'cursor-pointer' : ''}>
+                <MetricCard
+                  icon={Download}
+                  label="Pending"
+                  value={pendingClaim}
+                  variant={Number(pendingClaim) > 0 ? 'highlight' : 'default'}
+                />
+              </div>
             </div>
           </div>
 
