@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { toast } from 'sonner'
-import { 
+import {
   CLAIM_DISTRIBUTOR_CONFIG,
   ClaimDistributorUtils,
   CLAIM_DISTRIBUTOR_CONSTANTS,
@@ -11,6 +11,7 @@ import {
   type ClaimConfig
 } from '@/config/claimDistributor'
 import { usePaymaster } from './usePaymaster'
+import { base } from 'viem/chains'
 
 /**
  * Hook principal pour interagir avec le Smart Contract ClaimDistributor
@@ -18,6 +19,7 @@ import { usePaymaster } from './usePaymaster'
  */
 export function useClaimDistributor() {
   const { address, isConnected } = useAccount()
+  const chainId = useChainId()
   const { writeContract, data: txHash, isPending, isSuccess, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
@@ -126,9 +128,9 @@ export function useClaimDistributor() {
   } : null
 
   const availability: ClaimAvailability | null = (
-    canClaimDaily !== undefined && 
-    canClaimWeekly !== undefined && 
-    nextClaimTimes && 
+    canClaimDaily !== undefined &&
+    canClaimWeekly !== undefined &&
+    nextClaimTimes &&
     rewardAmounts &&
     bonusPercentages
   ) ? {
@@ -147,6 +149,28 @@ export function useClaimDistributor() {
     dailyBonusPercent: Number(bonusPercentages[0]),
     weeklyBonusPercent: Number(bonusPercentages[1])
   } : null
+
+  // DEBUG: Log des données brutes du Smart Contract
+  console.log('🔍 DEBUG useClaimDistributor - Raw Data:', {
+    address,
+    isConnected,
+    contractAddress: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
+    rawClaimConfig,
+    rawUserClaims,
+    canClaimDaily,
+    canClaimWeekly,
+    nextClaimTimes,
+    rewardAmounts,
+    bonusPercentages,
+    contractBalance
+  })
+
+  // DEBUG: Log des données parsées
+  console.log('🔍 DEBUG useClaimDistributor - Parsed Data:', {
+    claimConfig,
+    userClaimData,
+    availability
+  })
 
   // ===== FONCTIONS DE CLAIM =====
 
@@ -175,7 +199,8 @@ export function useClaimDistributor() {
       let result
 
       if (isPaymasterEnabled) {
-        // Utilisation du Paymaster pour transaction gasless
+        // Tentative de transaction gasless via Paymaster
+        console.log('🎯 Attempting gas-free daily claim...')
         result = await sponsoredClaimDaily()
         
         if (result.success) {
@@ -190,7 +215,22 @@ export function useClaimDistributor() {
             refetchBonusPercentages()
           }, 2000)
         } else {
-          toast.error(`Gas-free claim failed: ${result.error}`)
+          // Fallback vers transaction normale si Paymaster échoue
+          console.log('🎯 Gas-free failed, falling back to normal transaction...')
+          toast.warning('Gas-free failed, proceeding with normal transaction')
+          
+          // Transaction normale avec gas
+          writeContract({
+            address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
+            abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
+            functionName: 'claimDaily',
+            args: [],
+            chain: base,
+            account: address
+          })
+
+          result = { success: true, txHash: 'pending' }
+          setLastActivity('daily_claim')
         }
       } else {
         // Transaction normale avec gas
@@ -198,7 +238,9 @@ export function useClaimDistributor() {
           address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
           abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
           functionName: 'claimDaily',
-          args: []
+          args: [],
+          chain: base,
+          account: address
         })
 
         // Le succès sera géré par l'effect qui watch isConfirmed
@@ -258,7 +300,8 @@ export function useClaimDistributor() {
       let result
 
       if (isPaymasterEnabled) {
-        // Utilisation du Paymaster pour transaction gasless
+        // Tentative de transaction gasless via Paymaster
+        console.log('🎯 Attempting gas-free weekly claim...')
         result = await sponsoredClaimWeekly()
         
         if (result.success) {
@@ -273,7 +316,22 @@ export function useClaimDistributor() {
             refetchBonusPercentages()
           }, 2000)
         } else {
-          toast.error(`Gas-free claim failed: ${result.error}`)
+          // Fallback vers transaction normale si Paymaster échoue
+          console.log('🎯 Gas-free failed, falling back to normal transaction...')
+          toast.warning('Gas-free failed, proceeding with normal transaction')
+          
+          // Transaction normale avec gas
+          writeContract({
+            address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
+            abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
+            functionName: 'claimWeekly',
+            args: [],
+            chain: base,
+            account: address
+          })
+
+          result = { success: true, txHash: 'pending' }
+          setLastActivity('weekly_claim')
         }
       } else {
         // Transaction normale avec gas
@@ -281,7 +339,9 @@ export function useClaimDistributor() {
           address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
           abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
           functionName: 'claimWeekly',
-          args: []
+          args: [],
+          chain: base,
+          account: address
         })
 
         result = { success: true, txHash: 'pending' }

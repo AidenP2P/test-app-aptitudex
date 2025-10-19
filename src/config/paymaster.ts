@@ -13,11 +13,11 @@ export interface PaymasterConfig {
 }
 
 export const PAYMASTER_CONFIG: PaymasterConfig = {
-  // URLs et identifiants Paymaster (à configurer avec les vraies valeurs)
-  rpcUrl: import.meta.env.VITE_COINBASE_PAYMASTER_RPC || 'https://api.developer.coinbase.com/rpc/v1/base',
-  policyId: import.meta.env.VITE_COINBASE_POLICY_ID || '',
-  apiKey: import.meta.env.VITE_COINBASE_API_KEY || '',
-  projectId: import.meta.env.VITE_COINBASE_PROJECT_ID || '',
+  // URL RPC avec clé API intégrée fournie par l'utilisateur
+  rpcUrl: import.meta.env.VITE_COINBASE_PAYMASTER_RPC || '',
+  policyId: '',
+  apiKey: '',
+  projectId: '',
   
   // Configuration de sponsoring
   sponsorshipMode: 'FULL',
@@ -118,7 +118,7 @@ export const CLAIM_PAYMASTER_POLICIES: PaymasterPolicy[] = [
       maxGasPerTransaction: BigInt(300000),
       maxTransactionsPerDay: 1,
       allowedMethods: ['claimDaily'],
-      allowedContracts: [] // À remplir avec l'adresse du ClaimDistributor
+      allowedContracts: ['0x9Af5dFD8903968D6d0e20e741fB0737E6de67a97'] // ClaimDistributor sur Base Mainnet
     },
     active: true
   },
@@ -131,7 +131,7 @@ export const CLAIM_PAYMASTER_POLICIES: PaymasterPolicy[] = [
       maxGasPerTransaction: BigInt(350000),
       maxTransactionsPerDay: 1, // 1 par semaine en réalité
       allowedMethods: ['claimWeekly'],
-      allowedContracts: [] // À remplir avec l'adresse du ClaimDistributor
+      allowedContracts: ['0x9Af5dFD8903968D6d0e20e741fB0737E6de67a97'] // ClaimDistributor sur Base Mainnet
     },
     active: true
   }
@@ -150,31 +150,16 @@ export class PaymasterUtils {
    * Vérifie si le Paymaster est configuré
    */
   static isPaymasterConfigured(): boolean {
-    return Boolean(
-      PAYMASTER_CONFIG.rpcUrl &&
-      PAYMASTER_CONFIG.policyId &&
-      PAYMASTER_CONFIG.apiKey &&
-      PAYMASTER_CONFIG.projectId
-    )
+    return Boolean(PAYMASTER_CONFIG.rpcUrl && PAYMASTER_CONFIG.rpcUrl.includes('api.developer.coinbase.com'))
   }
 
   /**
    * Construit les headers pour les requêtes API Coinbase
    */
   static getAPIHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+    return {
+      'Content-Type': 'application/json'
     }
-
-    if (PAYMASTER_CONFIG.apiKey) {
-      headers['Authorization'] = `Bearer ${PAYMASTER_CONFIG.apiKey}`
-    }
-
-    if (PAYMASTER_CONFIG.projectId) {
-      headers['X-Project-ID'] = PAYMASTER_CONFIG.projectId
-    }
-
-    return headers
   }
 
   /**
@@ -225,7 +210,7 @@ export class PaymasterUtils {
       data: callData,
       from,
       gasLimit: gasEstimate.toString(),
-      policyId: PAYMASTER_CONFIG.policyId,
+      policyId: PAYMASTER_CONFIG.policyId || 'default', // Fallback si pas de Policy ID
       value: '0'
     }
   }

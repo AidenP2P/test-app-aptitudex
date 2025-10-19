@@ -159,14 +159,14 @@ export function ClaimCard({
       {/* Action Button */}
       <Button
         onClick={handleClaim}
-        disabled={!canClaim || isProcessing || !isAdmin}
+        disabled={!canClaim || isProcessing}
         className={cn(
           "w-full h-12 text-sm font-medium transition-all",
-          canClaim && isAdmin 
-            ? "bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg" 
+          canClaim
+            ? "bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg"
             : ""
         )}
-        variant={canClaim && isAdmin ? "default" : "outline"}
+        variant={canClaim ? "default" : "outline"}
         size="lg"
       >
         {isProcessing ? (
@@ -174,8 +174,6 @@ export function ClaimCard({
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Claiming...</span>
           </div>
-        ) : !isAdmin ? (
-          "Admin Only"
         ) : canClaim ? (
           <div className="flex items-center gap-2">
             <Gift className="w-4 h-4" />
@@ -203,14 +201,12 @@ export function ClaimCard({
         </div>
       )}
 
-      {/* Admin notice */}
-      {!isAdmin && (
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
-            💡 Admin wallet required to claim rewards
-          </p>
-        </div>
-      )}
+      {/* Community notice */}
+      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
+          🎯 Community rewards powered by Smart Contract
+        </p>
+      </div>
     </div>
   )
 }

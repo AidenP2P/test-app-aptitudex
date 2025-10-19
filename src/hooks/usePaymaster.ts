@@ -127,15 +127,16 @@ export function usePaymaster() {
         return { success: false, error: sponsorResult.error }
       }
 
-      // Pour l'instant, on simule l'exécution de la transaction sponsorisée
-      // En réalité, il faudrait utiliser un Account Abstraction wallet ou
-      // une intégration ERC-4337 complète
+      // Important : MetaMask ne supporte pas nativement ERC-4337
+      // Pour de vraies transactions gasless, il faut un wallet Account Abstraction
+      // En attendant, on retourne false pour déclencher le fallback vers transaction normale
       
-      toast.success(PAYMASTER_MESSAGES.GASLESS_CLAIM)
+      console.log('🔧 Paymaster: Sponsoring obtained, but MetaMask cannot execute UserOperations')
+      console.log('🔧 Paymaster: Falling back to normal transaction for actual execution')
       
       return {
-        success: true,
-        txHash: '0x' + Math.random().toString(16).substr(2, 64) // Simulation
+        success: false,
+        error: 'Sponsoring available but requires Account Abstraction wallet for gas-free execution. Using normal transaction.'
       }
 
     } catch (error) {
@@ -170,27 +171,26 @@ export function usePaymaster() {
   }, [executeSponsoredTransaction])
 
   /**
-   * Vérifie le statut du Paymaster
+   * Vérifie le statut du Paymaster Coinbase
    */
   const checkPaymasterStatus = useCallback(async (): Promise<{ available: boolean; policies?: any[] }> => {
     try {
-      const response = await fetch('/api/paymaster/status', {
-        method: 'GET',
-        headers: PaymasterUtils.getAPIHeaders()
-      })
-
-      if (!response.ok) {
+      // Vérifie simplement si les clés API sont configurées
+      const isConfigured = PaymasterUtils.isPaymasterConfigured()
+      
+      if (!isConfigured) {
+        console.log('🔧 Paymaster: Non configuré (clés API manquantes)')
         return { available: false }
       }
 
-      const data = await response.json()
+      console.log('🔧 Paymaster: Configuré et disponible')
       return {
         available: true,
-        policies: data.policies || []
+        policies: ['direct-sponsoring'] // Mode direct sans Policy ID spécifique
       }
 
     } catch (error) {
-      console.error('Paymaster status check failed:', error)
+      console.error('🔧 Paymaster: Status check failed:', error)
       return { available: false }
     }
   }, [])
@@ -216,56 +216,143 @@ export function usePaymaster() {
 }
 
 /**
- * Fonction auxiliaire pour effectuer la requête de sponsoring
+ * Fonction auxiliaire pour effectuer la requête de sponsoring via l'API Coinbase
  */
 async function requestSponsorship(
   sponsorRequest: PaymasterSponsorRequest
 ): Promise<PaymasterSponsorResponse> {
   try {
-    // Simulation d'une requête à l'API Coinbase Paymaster
-    // En production, cela ferait une vraie requête HTTP
+    console.log('🔧 Paymaster: Tentative de sponsoring transaction...', sponsorRequest)
     
-    const response = await fetch('/api/paymaster/sponsor', {
+    // URL directe avec clé API intégrée
+    const coinbaseUrl = PAYMASTER_CONFIG.rpcUrl
+    console.log('🔧 Paymaster: Using Coinbase endpoint:', coinbaseUrl)
+    
+    // Construction de la requête ERC-4337 pour le Paymaster
+    const userOp = {
+      sender: sponsorRequest.from,
+      nonce: '0x0', // Sera calculé par le bundler
+      initCode: '0x',
+      callData: sponsorRequest.data,
+      callGasLimit: `0x${parseInt(sponsorRequest.gasLimit).toString(16)}`,
+      verificationGasLimit: '0x7530', // 30k gas
+      preVerificationGas: '0x4e20', // 20k gas
+      maxFeePerGas: '0x59682f00', // 1.5 gwei
+      maxPriorityFeePerGas: '0x3b9aca00', // 1 gwei
+      paymasterAndData: '0x',
+      signature: '0x'
+    }
+
+    console.log('🔧 Paymaster: UserOperation construite:', userOp)
+
+    // Headers simples - la clé API est intégrée dans l'URL
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+
+    const requestBody = {
+      jsonrpc: '2.0',
+      id: Date.now(),
+      method: 'pm_sponsorUserOperation',
+      params: [
+        userOp,
+        '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789' // EntryPoint v0.6 address
+      ]
+    }
+
+    console.log('🔧 Paymaster: Request URL:', coinbaseUrl)
+    console.log('🔧 Paymaster: Request headers:', headers)
+    console.log('🔧 Paymaster: Request body:', JSON.stringify(requestBody, null, 2))
+
+    // Requête directe vers l'endpoint Coinbase
+    console.log('🔧 Paymaster: Attempting direct Coinbase API call...')
+    const response = await fetch(coinbaseUrl, {
       method: 'POST',
-      headers: PaymasterUtils.getAPIHeaders(),
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'pm_sponsorUserOperation',
-        params: [
-          {
-            sender: sponsorRequest.from,
-            nonce: '0x0', // À calculer dynamiquement
-            initCode: '0x',
-            callData: sponsorRequest.data,
-            callGasLimit: sponsorRequest.gasLimit,
-            verificationGasLimit: '0x5000',
-            preVerificationGas: '0x5000',
-            maxFeePerGas: '0x3b9aca00',
-            maxPriorityFeePerGas: '0x3b9aca00',
-            paymasterAndData: '0x',
-            signature: '0x'
-          },
-          '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789' // EntryPoint address
-        ]
-      })
+      headers,
+      body: JSON.stringify(requestBody)
     })
 
+    console.log('🔧 Paymaster: Response status:', response.status)
+    console.log('🔧 Paymaster: Response headers:', Object.fromEntries(response.headers.entries()))
+
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('🔧 Paymaster: HTTP Error Details:')
+      console.error('  - Status:', response.status)
+      console.error('  - Status Text:', response.statusText)
+      console.error('  - Error Body:', errorText)
+      
+      try {
+        const errorJson = JSON.parse(errorText)
+        console.error('  - Parsed Error:', errorJson)
+      } catch (e) {
+        console.error('  - Raw Error Text:', errorText)
+      }
+      
+      // Fallback : Si l'API échoue (CORS, authentification, etc.), on continue sans sponsoring
+      console.log('🔧 Paymaster: API failed, falling back to normal transaction')
       return {
         success: false,
-        error: `HTTP ${response.status}: ${response.statusText}`
+        error: `Coinbase API Error ${response.status}: ${errorText}. Fallback to normal transaction.`
       }
     }
 
     const data = await response.json()
-    return PaymasterUtils.parseSponsorResponse(data)
+    console.log('🔧 Paymaster: Success Response data:', JSON.stringify(data, null, 2))
 
-  } catch (error) {
-    console.error('Sponsorship request failed:', error)
+    // Parse la réponse Coinbase
+    if (data.error) {
+      let errorMessage = data.error.message || 'Coinbase Paymaster error'
+      
+      // Détection spécifique de l'erreur Account Abstraction
+      if (data.error.code === -32004 && data.error.message?.includes('AA20 account not deployed')) {
+        errorMessage = 'Gasless transactions require a Smart Contract Wallet. Using normal transaction with MetaMask.'
+        console.log('🔧 Paymaster: MetaMask detected - Smart Wallet required for gasless transactions')
+      }
+      
+      return {
+        success: false,
+        error: errorMessage,
+        errorCode: data.error.code?.toString()
+      }
+    }
+
+    if (data.result) {
+      return {
+        success: true,
+        sponsorshipData: {
+          paymasterAddress: data.result.paymasterAndData?.slice(0, 42) || '0x',
+          paymasterData: data.result.paymasterAndData || '0x',
+          preVerificationGas: data.result.preVerificationGas || '0x4e20',
+          verificationGasLimit: data.result.verificationGasLimit || '0x7530',
+          callGasLimit: data.result.callGasLimit || userOp.callGasLimit
+        }
+      }
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : PAYMASTER_ERRORS.NETWORK_ERROR
+      error: 'Invalid Coinbase Paymaster response format'
+    }
+
+  } catch (error) {
+    console.error('🔧 Paymaster: Sponsorship request failed:', error)
+    
+    // Diagnostic de l'erreur spécifique
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.log('🔧 Paymaster: CORS error detected - falling back to normal transaction')
+      
+      return {
+        success: false,
+        error: 'CORS error - Paymaster unavailable. Using normal transaction.'
+      }
+    }
+    
+    // Autres erreurs
+    console.log('🔧 Paymaster: Other error, falling back to normal transaction')
+    return {
+      success: false,
+      error: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}. Using normal transaction.`
     }
   }
 }

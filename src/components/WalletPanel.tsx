@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Wallet, Power } from 'lucide-react'
+import { Wallet, Power, Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
@@ -8,6 +8,106 @@ import { injected } from 'wagmi/connectors'
 import { Identity, Name, Avatar } from '@coinbase/onchainkit/identity'
 import baseLogoInline from '@/assets/base-logo-inline.png'
 
+// Debug ENS pour diagnostiquer les problèmes
+const DEBUG_ENS = true
+
+// Composant pour afficher le nom/adresse avec loading
+const ENSLoadingWrapper = ({ address }: { address: `0x${string}` | undefined }) => {
+  const [isLoadingENS, setIsLoadingENS] = useState(false)
+  const nameRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (nameRef.current && address) {
+      if (DEBUG_ENS) {
+        console.log('🔍 ENS DEBUG - Starting observation for address:', address)
+      }
+      
+      // Démarrer le loading
+      setIsLoadingENS(true)
+      
+      // Observer le contenu du composant Name
+      const observer = new MutationObserver(() => {
+        const textContent = nameRef.current?.textContent || ''
+        
+        if (DEBUG_ENS) {
+          console.log('🔍 ENS DEBUG - MutationObserver triggered')
+          console.log('  - TextContent:', textContent)
+          console.log('  - Text Length:', textContent.length)
+        }
+        
+        // Si on a du contenu (ENS ou adresse), arrêter le loading
+        if (textContent.length > 0) {
+          setIsLoadingENS(false)
+        }
+      })
+
+      observer.observe(nameRef.current, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      })
+
+      // Vérification initiale après plusieurs délais pour capturer les changements
+      const checkENS = (delay: number, label: string) => {
+        setTimeout(() => {
+          const textContent = nameRef.current?.textContent || ''
+          
+          if (DEBUG_ENS) {
+            console.log(`🔍 ENS DEBUG - ${label} Check (${delay}ms)`)
+            console.log('  - TextContent:', textContent)
+          }
+          
+          // Si on a du contenu (ENS ou adresse), arrêter le loading
+          if (textContent.length > 0) {
+            setIsLoadingENS(false)
+          }
+        }, delay)
+      }
+
+      checkENS(100, 'Quick')
+      checkENS(500, 'Initial')
+      checkENS(1000, 'Delayed')
+      checkENS(2000, 'Extended')
+      
+      // Timeout de sécurité pour arrêter le loading après 3 secondes max
+      const loadingTimeout = setTimeout(() => {
+        setIsLoadingENS(false)
+      }, 3000)
+
+      return () => {
+        observer.disconnect()
+        clearTimeout(loadingTimeout)
+      }
+    }
+  }, [address])
+
+  if (isLoadingENS) {
+    return (
+      <div className="flex items-center gap-2 text-sm font-mono text-foreground">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span>Loading...</span>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <Identity
+        address={address}
+        className="text-sm font-mono"
+        hasCopyAddressOnClick={false}
+      >
+        <Name className="text-sm font-mono text-foreground" />
+      </Identity>
+      <div ref={nameRef} className="hidden">
+        <Identity address={address}>
+          <Name className="text-xs" />
+        </Identity>
+      </div>
+    </>
+  )
+}
+
 // Composant pour la pastille ENS avec détection de statut
 const ENSStatusBadge = ({ address }: { address: `0x${string}` | undefined }) => {
   const [hasENS, setHasENS] = useState(false)
@@ -15,13 +115,25 @@ const ENSStatusBadge = ({ address }: { address: `0x${string}` | undefined }) => 
 
   useEffect(() => {
     if (nameRef.current && address) {
+      if (DEBUG_ENS) {
+        console.log('🔍 ENS DEBUG - Starting observation for address:', address)
+      }
+      
       // Observer le contenu du composant Name
       const observer = new MutationObserver(() => {
         const textContent = nameRef.current?.textContent || ''
         // Si le texte ne ressemble pas à une adresse (0x...), c'est probablement un ENS
         const isAddress = textContent.startsWith('0x') && textContent.length >= 10
         const ensDetected = !isAddress && textContent.length > 0
-        console.log('🔍 ENS Detection - Text:', textContent, 'IsAddress:', isAddress, 'HasENS:', ensDetected)
+        
+        if (DEBUG_ENS) {
+          console.log('🔍 ENS DEBUG - MutationObserver triggered')
+          console.log('  - TextContent:', textContent)
+          console.log('  - IsAddress:', isAddress)
+          console.log('  - ENS Detected:', ensDetected)
+          console.log('  - Text Length:', textContent.length)
+        }
+        
         setHasENS(ensDetected)
       })
 
@@ -31,14 +143,28 @@ const ENSStatusBadge = ({ address }: { address: `0x${string}` | undefined }) => 
         characterData: true
       })
 
-      // Vérification initiale après un délai
-      setTimeout(() => {
-        const textContent = nameRef.current?.textContent || ''
-        const isAddress = textContent.startsWith('0x') && textContent.length >= 10
-        const ensDetected = !isAddress && textContent.length > 0
-        console.log('🔍 ENS Initial Check - Text:', textContent, 'IsAddress:', isAddress, 'HasENS:', ensDetected)
-        setHasENS(ensDetected)
-      }, 500)
+      // Vérification initiale après plusieurs délais pour capturer les changements
+      const checkENS = (delay: number, label: string) => {
+        setTimeout(() => {
+          const textContent = nameRef.current?.textContent || ''
+          const isAddress = textContent.startsWith('0x') && textContent.length >= 10
+          const ensDetected = !isAddress && textContent.length > 0
+          
+          if (DEBUG_ENS) {
+            console.log(`🔍 ENS DEBUG - ${label} Check (${delay}ms)`)
+            console.log('  - TextContent:', textContent)
+            console.log('  - IsAddress:', isAddress)
+            console.log('  - ENS Detected:', ensDetected)
+          }
+          
+          setHasENS(ensDetected)
+        }, delay)
+      }
+
+      checkENS(100, 'Quick')
+      checkENS(500, 'Initial')
+      checkENS(1000, 'Delayed')
+      checkENS(2000, 'Extended')
 
       return () => observer.disconnect()
     }
@@ -132,13 +258,8 @@ export const WalletPanel = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <Identity
-                address={address}
-                className="text-sm font-mono"
-                hasCopyAddressOnClick={false}
-              >
-                <Name className="text-sm font-mono text-foreground" />
-              </Identity>
+              {/* Hook pour détecter le chargement ENS */}
+              <ENSLoadingWrapper address={address} />
             </div>
             <div className="flex items-center gap-1 mt-1">
               <Badge className="text-xs bg-brand text-white">

@@ -226,6 +226,24 @@ const Claim = () => {
               </Button>
             </div>
 
+            {/* Paymaster Information Banner */}
+            {isPaymasterEnabled && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Zap className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-blue-900 mb-1">Gas-free Claims Available</h4>
+                    <p className="text-sm text-blue-700 mb-2">
+                      Gas-free transactions work with <strong>Smart Contract Wallets</strong> (Coinbase Smart Wallet, Account Abstraction).
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      💡 With MetaMask: Claims will automatically use normal transactions (you pay gas fees). Claims still work perfectly!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Claims Interface */}
             <div className="space-y-4">
               {/* Daily Claim */}
@@ -240,7 +258,7 @@ const Claim = () => {
                   canClaim={availability.canClaimDaily}
                   nextClaimTime={availability.nextDailyClaimTime}
                   isLoading={isClaimLoading}
-                  isAdmin={false} // Plus de restriction admin
+                  isAdmin={true} // Tous les utilisateurs peuvent claim
                   onClaim={handleDailyClaim}
                 />
               )}
@@ -257,7 +275,7 @@ const Claim = () => {
                   canClaim={availability.canClaimWeekly}
                   nextClaimTime={availability.nextWeeklyClaimTime}
                   isLoading={isClaimLoading}
-                  isAdmin={false} // Plus de restriction admin
+                  isAdmin={true} // Tous les utilisateurs peuvent claim
                   onClaim={handleWeeklyClaim}
                 />
               )}
