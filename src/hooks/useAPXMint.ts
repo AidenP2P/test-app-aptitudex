@@ -44,6 +44,8 @@ export function useAPXMint() {
         abi: APX_TOKEN_ABI,
         functionName: 'mint',
         args: [toAddress, parsedAmount],
+        account: address,
+        chain: base,
       })
 
       toast.success(`Minting ${amount} APX tokens to ${toAddress.slice(0, 6)}...${toAddress.slice(-4)}`)
@@ -102,6 +104,8 @@ export function useAPXPause() {
         address: APX_TOKEN_CONFIG.address,
         abi: APX_TOKEN_ABI,
         functionName: 'pause',
+        account: address,
+        chain: base,
       })
 
       toast.success('Pausing contract...')
@@ -125,6 +129,8 @@ export function useAPXPause() {
         address: APX_TOKEN_CONFIG.address,
         abi: APX_TOKEN_ABI,
         functionName: 'unpause',
+        account: address,
+        chain: base,
       })
 
       toast.success('Unpausing contract...')
