@@ -27,44 +27,13 @@
       rel="stylesheet"
     />
 
-    <!-- ===== Favicons - Force local icons only ===== -->
-    <!-- Primary favicon (ICO format for maximum compatibility) -->
-    <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
-    <link rel="shortcut icon" href="/favicon.ico?v=3" type="image/x-icon" />
-    
-    <!-- PNG favicons for modern browsers -->
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
-    
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
-    
-    <!-- Android Chrome Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3" />
-    
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="/site.webmanifest?v=3" />
+    <!-- ===== Favicons - Simple & Reliable Configuration ===== -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#000000" />
-    <meta name="msapplication-TileColor" content="#000000" />
-    
-    <!-- Force favicon refresh script -->
-    <script>
-      // Remove any existing favicons and force reload
-      document.addEventListener('DOMContentLoaded', function() {
-        const links = document.querySelectorAll('link[rel*="icon"]');
-        links.forEach(function(link) {
-          if (link.href.includes('googleapis.com')) {
-            link.remove(); // Remove external favicons
-          } else {
-            // Force refresh local favicons
-            const url = new URL(link.href);
-            url.searchParams.set('v', Date.now());
-            link.href = url.toString();
-          }
-        });
-      });
-    </script>
     <!-- ============================================ -->
 
     
