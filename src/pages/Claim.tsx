@@ -44,6 +44,16 @@ const Claim = () => {
     refresh
   } = useClaimDistributor()
 
+  const handleRefresh = async () => {
+    try {
+      await refresh()
+      toast.success('Data refreshed successfully!')
+    } catch (error) {
+      toast.error('Failed to refresh data')
+      console.error('Refresh error:', error)
+    }
+  }
+
   const handleClaim = async () => {
     try {
       await claimRewards()
@@ -113,9 +123,10 @@ const Claim = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={refresh}
+            onClick={handleRefresh}
             className="h-8 px-3"
             disabled={isClaimLoading}
+            title="Refresh claim data"
           >
             <RefreshCw className={`w-4 h-4 ${isClaimLoading ? 'animate-spin' : ''}`} />
           </Button>

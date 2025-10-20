@@ -307,28 +307,32 @@ export class ClaimDistributorUtils {
   }
 
   /**
-   * Calcule le temps jusqu'au prochain claim
+   * Convertit un timestamp de prochain claim en Date
+   * Le contrat renvoie déjà le timestamp exact du prochain claim disponible
    */
-  static getNextClaimTime(lastClaimTimestamp: bigint, cooldownSeconds: number): Date | null {
-    if (lastClaimTimestamp === 0n) return null
+  static getNextClaimTime(nextClaimTimestamp: bigint, cooldownSeconds?: number): Date | null {
+    if (nextClaimTimestamp === 0n) return null
     
-    const lastClaimMs = Number(lastClaimTimestamp) * 1000
-    const cooldownMs = cooldownSeconds * 1000
+    // Le timestamp est déjà le moment exact où le claim sera disponible
+    const nextClaimMs = Number(nextClaimTimestamp) * 1000
     
-    return new Date(lastClaimMs + cooldownMs)
+    // Vérifier que ce n'est pas dans le passé
+    const now = Date.now()
+    if (nextClaimMs <= now) return null
+    
+    return new Date(nextClaimMs)
   }
 
   /**
-   * Vérifie si un claim est disponible
+   * Vérifie si un claim est disponible basé sur le timestamp de prochain claim
    */
-  static isClaimAvailable(lastClaimTimestamp: bigint, cooldownSeconds: number): boolean {
-    if (lastClaimTimestamp === 0n) return true
+  static isClaimAvailable(nextClaimTimestamp: bigint): boolean {
+    if (nextClaimTimestamp === 0n) return true
     
     const now = Date.now()
-    const lastClaimMs = Number(lastClaimTimestamp) * 1000
-    const cooldownMs = cooldownSeconds * 1000
+    const nextClaimMs = Number(nextClaimTimestamp) * 1000
     
-    return now >= (lastClaimMs + cooldownMs)
+    return now >= nextClaimMs
   }
 
   /**

@@ -201,11 +201,25 @@ export function ClaimCard({
         </div>
       )}
 
-      {/* Community notice */}
+      {/* Streak Bonus Details */}
       <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-        <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
-          🎯 Community rewards powered by Smart Contract
-        </p>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-blue-700 dark:text-blue-300">
+            🔥 Streak Bonus
+          </span>
+          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+            {streakCount > 0 ? (
+              `${streakCount} ${type === 'daily' ? 'day' : 'week'}${streakCount > 1 ? 's' : ''} (+${bonusPercentage}%)`
+            ) : (
+              'Start your streak!'
+            )}
+          </span>
+        </div>
+        {streakCount === 0 && (
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+            Claim consecutive {type === 'daily' ? 'days' : 'weeks'} to earn bonus rewards
+          </p>
+        )}
       </div>
     </div>
   )

@@ -117,8 +117,6 @@ const proxyUrl = process.env.NODE_ENV === 'development'
 # .env.production
 VITE_CHAIN_ID=8453
 VITE_RPC_URL=https://mainnet.base.org
-VITE_WALLETCONNECT_PROJECT_ID=b4kTm7Z6gzOyREswS8RoAWN603hNaWzX
-VITE_ONCHAINKIT_API_KEY=b4kTm7Z6gzOyREswS8RoAWN603hNaWzX
 
 # Variables Paymaster (seront définies sur Vercel)
 # COINBASE_API_KEY et COINBASE_PROJECT_ID sont des secrets serveur

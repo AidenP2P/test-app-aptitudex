@@ -136,14 +136,8 @@ export function useClaimDistributor() {
   ) ? {
     canClaimDaily: Boolean(canClaimDaily),
     canClaimWeekly: Boolean(canClaimWeekly),
-    nextDailyClaimTime: ClaimDistributorUtils.getNextClaimTime(
-      BigInt(nextClaimTimes[0]),
-      CLAIM_DISTRIBUTOR_CONSTANTS.COOLDOWN_DAILY
-    ),
-    nextWeeklyClaimTime: ClaimDistributorUtils.getNextClaimTime(
-      BigInt(nextClaimTimes[1]),
-      CLAIM_DISTRIBUTOR_CONSTANTS.COOLDOWN_WEEKLY
-    ),
+    nextDailyClaimTime: ClaimDistributorUtils.getNextClaimTime(BigInt(nextClaimTimes[0])),
+    nextWeeklyClaimTime: ClaimDistributorUtils.getNextClaimTime(BigInt(nextClaimTimes[1])),
     dailyRewardAmount: ClaimDistributorUtils.formatTokenAmount(BigInt(rewardAmounts[0])),
     weeklyRewardAmount: ClaimDistributorUtils.formatTokenAmount(BigInt(rewardAmounts[1])),
     dailyBonusPercent: Number(bonusPercentages[0]),
