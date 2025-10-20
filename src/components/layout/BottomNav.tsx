@@ -1,4 +1,4 @@
-import { Home, Award, Download, Activity, Settings } from 'lucide-react';
+import { Home, Award, Download, Activity, Settings, Info } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAppStore } from '@/store/useAppStore';
 import { useAPXToken } from '@/hooks/useAPXToken';
@@ -12,6 +12,7 @@ export const BottomNav = () => {
     { to: '/rewards', icon: Award, label: 'Rewards' },
     { to: '/claim', icon: Download, label: 'Claim' },
     { to: '/activity', icon: Activity, label: 'Activity' },
+    { to: '/about', icon: Info, label: 'About' },
   ];
   
   // Use the hook's isAdmin value as the source of truth

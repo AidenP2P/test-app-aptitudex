@@ -10,6 +10,7 @@ import Rewards from "./pages/Rewards";
 import Claim from "./pages/Claim";
 import Activity from "./pages/Activity";
 import Admin from "./pages/Admin";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/claim" element={<Claim />} />
               <Route path="/activity" element={<Activity />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/about" element={<About />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppShell>
