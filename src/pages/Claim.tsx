@@ -225,6 +225,47 @@ const Claim = () => {
           )}
         </div>
 
+        {/* Your Claim Statistics */}
+        {userClaimData && (
+          <div className="mt-6 p-4 bg-muted rounded-lg">
+            <h3 className="font-medium mb-3">Your Claim Statistics</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Total Daily Claims</p>
+                <p className="font-semibold">{Number(userClaimData.totalDailyClaims)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Total Weekly Claims</p>
+                <p className="font-semibold">{Number(userClaimData.totalWeeklyClaims)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Lifetime APX Claimed</p>
+                <p className="font-semibold">
+                  {userClaimData.lifetimeAPXClaimed
+                    ? (Number(userClaimData.lifetimeAPXClaimed) / 1e18).toFixed(2)
+                    : '0'} APX
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Payment Method</p>
+                <p className="font-semibold">
+                  {isPaymasterEnabled ? 'Gas-free' : 'Standard'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contract Balance */}
+        {contractBalance && (
+          <div className="mt-6 p-3 bg-card border rounded-lg">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">ClaimDistributor Balance</span>
+              <span className="font-medium">{contractBalance} APX</span>
+            </div>
+          </div>
+        )}
+
         {/* Legacy Pending Claims */}
         {hasPending && (
           <div className="mt-6 p-6 bg-card rounded-xl border border-border">

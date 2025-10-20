@@ -1,23 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { RewardItem } from '@/components/RewardItem';
 import { BottomSheet } from '@/components/BottomSheet';
+import { SpecialRewardCard } from '@/components/SpecialRewardCard';
 import { useAppStore } from '@/store/useAppStore';
-import { Award, Zap, Info } from 'lucide-react';
+import { useSpecialRewards } from '@/hooks/useSpecialRewards';
+import { Award, Zap, Info, Coins } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useClaimDistributor } from '@/hooks/useClaimDistributor';
+import type { SpecialReward } from '@/config/specialRewardsDistributor';
 
 const Rewards = () => {
   const { rewards, isConnected } = useAppStore();
   const [selectedReward, setSelectedReward] = useState<string | null>(null);
+  const [specialRewards, setSpecialRewards] = useState<SpecialReward[]>([]);
   
-  const {
-    userClaimData,
-    contractBalance,
-    isPaymasterEnabled
-  } = useClaimDistributor();
+  // Special rewards hook
+  const { getAvailableRewards, contractBalance, isLoading: isSpecialRewardsLoading } = useSpecialRewards();
   
   const reward = rewards?.find((r) => r.id === selectedReward);
+  
+  // Load special rewards - get ALL rewards (claimed and non-claimed)
+  useEffect(() => {
+    if (isConnected) {
+      getAvailableRewards().then((allRewards) => {
+        console.log('🎯 Setting rewards in state:', allRewards);
+        setSpecialRewards(allRewards); // Ne pas filtrer - afficher TOUS les rewards
+      }).catch(console.error);
+    } else {
+      setSpecialRewards([]);
+    }
+  }, [isConnected, getAvailableRewards]);
+  
+  const hasAvailableSpecialRewards = specialRewards.length > 0
+  const hasClaimableSpecialRewards = specialRewards.some(r => r.canClaim)
+  
+  // Check if we have any claimable rewards (legacy or special)
+  const hasAnyAvailableRewards = (rewards && rewards.some(r => r.status === 'earned')) || hasAvailableSpecialRewards
+  
+  const handleSpecialRewardClaim = () => {
+    // Refresh special rewards after claim - but keep ALL rewards visible
+    console.log('🔄 Refreshing rewards after claim...')
+    getAvailableRewards().then((allRewards) => {
+      console.log('🔄 Refreshed rewards:', allRewards)
+      setSpecialRewards(allRewards) // Keep ALL rewards, including newly claimed ones
+    }).catch(console.error)
+  }
   
   if (!isConnected) {
     return (
@@ -70,55 +97,64 @@ const Rewards = () => {
           </div>
         </div>
 
-        {/* Your Claim Statistics */}
-        {userClaimData && (
-          <div className="mb-6 p-4 bg-muted rounded-lg">
-            <h3 className="font-medium mb-3">Your Claim Statistics</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Total Daily Claims</p>
-                <p className="font-semibold">{Number(userClaimData.totalDailyClaims)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Total Weekly Claims</p>
-                <p className="font-semibold">{Number(userClaimData.totalWeeklyClaims)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Lifetime APX Claimed</p>
-                <p className="font-semibold">
-                  {userClaimData.lifetimeAPXClaimed
-                    ? (Number(userClaimData.lifetimeAPXClaimed) / 1e18).toFixed(2)
-                    : '0'} APX
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Payment Method</p>
-                <p className="font-semibold">
-                  {isPaymasterEnabled ? 'Gas-free' : 'Standard'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Contract Balance */}
-        {contractBalance && (
-          <div className="mb-6 p-3 bg-card border rounded-lg">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Contract Balance</span>
-              <span className="font-medium">{contractBalance} APX</span>
-            </div>
-          </div>
-        )}
+        {/* Special Rewards Section */}
+        {isConnected && (
+          <>
+            {specialRewards.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Special Rewards</h3>
+                  <Badge variant="secondary" className="text-xs">
+                    {specialRewards.filter(r => r.canClaim).length} claimable / {specialRewards.length} total
+                  </Badge>
+                </div>
+                <div className="space-y-4">
+                  {specialRewards.map((specialReward) => {
+                    console.log('🎨 Rendering reward card:', specialReward.name, 'canClaim:', specialReward.canClaim, 'isClaimed:', specialReward.isClaimed);
+                    return (
+                      <SpecialRewardCard
+                        key={specialReward.id}
+                        reward={specialReward}
+                        onClaim={handleSpecialRewardClaim}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
+
+            {/* Loading state for special rewards */}
+            {isSpecialRewardsLoading && specialRewards.length === 0 && (
+              <div className="mb-6 p-6 rounded-xl border bg-card animate-pulse">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-muted rounded-xl"></div>
+                    <div>
+                      <div className="w-32 h-4 bg-muted rounded mb-2"></div>
+                      <div className="w-48 h-3 bg-muted rounded"></div>
+                    </div>
+                  </div>
+                  <div className="w-20 h-6 bg-muted rounded"></div>
+                </div>
+                <div className="w-full h-10 bg-muted rounded"></div>
+              </div>
+            )}
+          </>
+        )}
+        
         {/* Original Rewards List */}
         {(!rewards || rewards.length === 0) ? (
-          <div className="text-center py-8">
-            <Award className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
-              No traditional rewards yet — your APX rewards are managed through the new claim system.
-            </p>
-          </div>
+          // Only show "no rewards" message if there are truly no available rewards
+          !hasClaimableSpecialRewards && !isSpecialRewardsLoading && (
+            <div className="text-center py-8">
+              <Award className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                No one-time rewards to get
+              </p>
+            </div>
+          )
         ) : (
           <div className="space-y-3">
             <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
@@ -131,6 +167,19 @@ const Rewards = () => {
                 onClick={() => setSelectedReward(reward.id)}
               />
             ))}
+          </div>
+        )}
+
+        {/* Special Rewards Contract Balance - Always show at bottom if connected */}
+        {isConnected && contractBalance && (
+          <div className="mt-8 p-3 bg-card border rounded-lg">
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <Coins className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Special Rewards Balance</span>
+              </div>
+              <span className="font-medium">{contractBalance} APX</span>
+            </div>
           </div>
         )}
       </div>

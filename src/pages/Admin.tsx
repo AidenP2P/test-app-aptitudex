@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { useAppStore } from '@/store/useAppStore';
-import { Settings, Send, FileText, Users, Pause, Play, DollarSign, Wallet } from 'lucide-react';
+import { Settings, Send, FileText, Users, Pause, Play, DollarSign, Wallet, Trophy, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,13 +14,14 @@ import { useAPXToken } from '@/hooks/useAPXToken';
 import { useAPXMint, useAPXPause } from '@/hooks/useAPXMint';
 import { useClaimData } from '@/hooks/useClaimDistributor';
 import { useProvisionDistributor } from '@/hooks/useProvisionDistributor';
+import { useSpecialRewardsAdmin } from '@/hooks/useSpecialRewardsAdmin';
 import { useDebugNetwork } from '@/hooks/useDebugNetwork';
 import { isAddress, parseEther } from 'viem';
 
 const Admin = () => {
   const { user, isConnected } = useAppStore();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'issue' | 'claims' | 'rules' | 'allowlist' | 'contract'>('issue');
+  const [activeTab, setActiveTab] = useState<'issue' | 'claims' | 'special' | 'rules' | 'allowlist' | 'contract'>('issue');
   
   // APX Token hooks
   const {
@@ -63,6 +64,18 @@ const Admin = () => {
     isBaseMainnet,
     forceBaseMainnet
   } = useDebugNetwork();
+
+  // Special Rewards Admin hook
+  const {
+    contractBalance: specialRewardsBalance,
+    activeRewardsCount,
+    activeRewardIds,
+    createSpecialReward,
+    provisionContract: provisionSpecialRewards,
+    toggleRewardStatus,
+    emergencyWithdraw: emergencyWithdrawSpecial,
+    isLoading: isSpecialRewardsLoading
+  } = useSpecialRewardsAdmin();
   
   // Issue reward state
   const [issueAddress, setIssueAddress] = useState('');
@@ -80,6 +93,25 @@ const Admin = () => {
   const [dailyRewardAmount, setDailyRewardAmount] = useState('10');
   const [weeklyRewardAmount, setWeeklyRewardAmount] = useState('100');
   const [claimsEnabled, setClaimsEnabled] = useState(true);
+
+  // Special Rewards state
+  const [specialRewardForm, setSpecialRewardForm] = useState({
+    name: '',
+    description: '',
+    amount: '',
+    rewardType: 'base_batches' as 'base_batches' | 'social' | 'quiz' | 'contest',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    maxClaims: '',
+    requirements: {
+      type: 'one_time',
+      action: '',
+      url: '',
+      verification: 'self_declared',
+      eligibility: ''
+    }
+  });
+  const [specialProvisionAmount, setSpecialProvisionAmount] = useState('');
 
   // Allowlist state
   const [newAddress, setNewAddress] = useState('');
@@ -159,6 +191,59 @@ const Admin = () => {
     toast.success('Address added to allowlist');
     setNewAddress('');
   };
+
+  const handleCreateSpecialReward = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!specialRewardForm.name || !specialRewardForm.description || !specialRewardForm.amount) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    try {
+      const result = await createSpecialReward(specialRewardForm);
+      if (result.success) {
+        // Reset form on success
+        setSpecialRewardForm({
+          name: '',
+          description: '',
+          amount: '',
+          rewardType: 'base_batches',
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          maxClaims: '',
+          requirements: {
+            type: 'one_time',
+            action: '',
+            url: '',
+            verification: 'self_declared',
+            eligibility: ''
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to create special reward:', error);
+    }
+  };
+
+  const handleProvisionSpecialRewards = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!specialProvisionAmount || Number(specialProvisionAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    try {
+      const result = await provisionSpecialRewards(specialProvisionAmount);
+      if (result.success) {
+        setSpecialProvisionAmount('');
+      }
+    } catch (error) {
+      console.error('Failed to provision special rewards contract:', error);
+      toast.error('Failed to provision contract');
+    }
+  };
   
   return (
     <>
@@ -187,6 +272,17 @@ const Admin = () => {
           >
             <DollarSign className="w-4 h-4" />
             ClaimDistributor
+          </button>
+          <button
+            onClick={() => setActiveTab('special')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
+              activeTab === 'special'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card border border-border text-foreground hover:border-primary/30'
+            }`}
+          >
+            <Trophy className="w-4 h-4" />
+            Special Rewards
           </button>
           <button
             onClick={() => setActiveTab('rules')}
@@ -454,7 +550,313 @@ const Admin = () => {
             </div>
           </div>
         )}
-        
+
+        {activeTab === 'special' && (
+          <div className="space-y-6">
+            {/* Special Rewards Status */}
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">Special Rewards Status</h3>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Trophy className="w-3 h-3" />
+                  {activeRewardsCount} Active Rewards
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Contract Balance</p>
+                  <p className="text-xl font-bold">{specialRewardsBalance} APX</p>
+                </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Active Rewards</p>
+                  <p className="text-xl font-bold">{activeRewardsCount}</p>
+                </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Contract Address</p>
+                  <p className="text-xs font-mono">0xb2a5...775C</p>
+                </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <p className="text-xl font-bold text-green-400">Live</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Create Special Reward */}
+            <form onSubmit={handleCreateSpecialReward} className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                Create Special Reward
+              </h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="specialName">Reward Name</Label>
+                    <Input
+                      id="specialName"
+                      type="text"
+                      placeholder="Base Batches 002 Bonus"
+                      value={specialRewardForm.name}
+                      onChange={(e) => setSpecialRewardForm(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="specialAmount">Amount (APX)</Label>
+                    <Input
+                      id="specialAmount"
+                      type="number"
+                      placeholder="50"
+                      step="0.000001"
+                      min="0"
+                      value={specialRewardForm.amount}
+                      onChange={(e) => setSpecialRewardForm(prev => ({ ...prev, amount: e.target.value }))}
+                      required
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="specialDescription">Description</Label>
+                  <Textarea
+                    id="specialDescription"
+                    placeholder="Exclusive reward for you as first users of this app!"
+                    value={specialRewardForm.description}
+                    onChange={(e) => setSpecialRewardForm(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                    className="mt-1.5"
+                  />
+                </div>
+
+                <div>
+                  <Label>Reward Type</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-1.5">
+                    {(['base_batches', 'social', 'quiz', 'contest'] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSpecialRewardForm(prev => ({ ...prev, rewardType: type }))}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
+                          specialRewardForm.rewardType === type
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        {type.replace('_', ' ')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="specialStartDate">Start Date</Label>
+                    <Input
+                      id="specialStartDate"
+                      type="date"
+                      value={specialRewardForm.startDate}
+                      onChange={(e) => setSpecialRewardForm(prev => ({ ...prev, startDate: e.target.value }))}
+                      required
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="specialEndDate">End Date</Label>
+                    <Input
+                      id="specialEndDate"
+                      type="date"
+                      value={specialRewardForm.endDate}
+                      onChange={(e) => setSpecialRewardForm(prev => ({ ...prev, endDate: e.target.value }))}
+                      required
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="specialMaxClaims">Max Claims (0 = unlimited)</Label>
+                  <Input
+                    id="specialMaxClaims"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    value={specialRewardForm.maxClaims}
+                    onChange={(e) => setSpecialRewardForm(prev => ({ ...prev, maxClaims: e.target.value }))}
+                    className="mt-1.5"
+                  />
+                </div>
+
+                {/* Requirements section for social type */}
+                {specialRewardForm.rewardType === 'social' && (
+                  <div className="space-y-3 p-4 bg-muted rounded-lg">
+                    <Label>Social Action Requirements</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="socialAction">Action</Label>
+                        <Input
+                          id="socialAction"
+                          placeholder="like_devfolio"
+                          value={specialRewardForm.requirements.action}
+                          onChange={(e) => setSpecialRewardForm(prev => ({
+                            ...prev,
+                            requirements: { ...prev.requirements, action: e.target.value }
+                          }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="socialUrl">URL</Label>
+                        <Input
+                          id="socialUrl"
+                          placeholder="https://devfolio.co/projects/..."
+                          value={specialRewardForm.requirements.url}
+                          onChange={(e) => setSpecialRewardForm(prev => ({
+                            ...prev,
+                            requirements: { ...prev.requirements, url: e.target.value }
+                          }))}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-12"
+                  size="lg"
+                  disabled={isSpecialRewardsLoading || !specialRewardForm.name || !specialRewardForm.amount}
+                >
+                  {isSpecialRewardsLoading ? 'Creating...' : `Create ${specialRewardForm.name} (+${specialRewardForm.amount || '0'} APX)`}
+                </Button>
+              </div>
+            </form>
+
+            {/* Provision Special Rewards Contract */}
+            <form onSubmit={handleProvisionSpecialRewards} className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Provision Special Rewards Contract</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="specialProvisionAmount">Amount (APX)</Label>
+                  <Input
+                    id="specialProvisionAmount"
+                    type="number"
+                    placeholder="100000"
+                    step="0.000001"
+                    min="0"
+                    value={specialProvisionAmount}
+                    onChange={(e) => setSpecialProvisionAmount(e.target.value)}
+                    required
+                    className="mt-1.5"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Current contract balance: {specialRewardsBalance} APX
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-12"
+                  size="lg"
+                  disabled={!specialProvisionAmount || Number(specialProvisionAmount) <= 0 || isSpecialRewardsLoading}
+                >
+                  {isSpecialRewardsLoading ? 'Processing...' : `Approve ${specialProvisionAmount || '0'} APX`}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Note:</strong> This will approve the SpecialRewardsDistributor to spend your APX tokens. Follow up with manual provision() call.
+                </p>
+              </div>
+            </form>
+
+            {/* Quick Actions - Initialize Predefined Rewards */}
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Quick Setup - Initialize Predefined Rewards</h3>
+              <div className="space-y-3">
+                <Button
+                  onClick={() => {
+                    setSpecialRewardForm({
+                      name: 'Celebrate Alpha version launch for Base Community',
+                      description: 'Exclusive reward for you as first users of this app!',
+                      amount: '50',
+                      rewardType: 'base_batches',
+                      startDate: new Date().toISOString().split('T')[0],
+                      endDate: '2025-12-31',
+                      maxClaims: '0',
+                      requirements: {
+                        type: 'one_time',
+                        action: '',
+                        url: '',
+                        verification: 'self_declared',
+                        eligibility: 'alpha_user'
+                      }
+                    });
+                  }}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Setup Alpha Launch Reward (50 APX)
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    setSpecialRewardForm({
+                      name: 'Support us on Devfolio',
+                      description: 'Like our project in the context of Base Batches 002 Builder and get rewarded!',
+                      amount: '1000',
+                      rewardType: 'social',
+                      startDate: new Date().toISOString().split('T')[0],
+                      endDate: '2024-10-24',
+                      maxClaims: '0',
+                      requirements: {
+                        type: 'social_action',
+                        action: 'like_devfolio',
+                        url: 'https://devfolio.co/projects/kudos-protocol-d7e4',
+                        verification: 'self_declared',
+                        eligibility: ''
+                      }
+                    });
+                  }}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Setup Devfolio Like Reward (1000 APX)
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                <strong>Quick Setup:</strong> Click to pre-fill forms with the predefined rewards, then click "Create" to deploy them.
+              </p>
+            </div>
+
+
+
+            {/* Emergency Controls */}
+            <div className="p-6 bg-card rounded-xl border border-border">
+              <h3 className="font-semibold text-lg mb-4">Emergency Controls</h3>
+              <div className="space-y-3">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => {
+                    const amount = prompt('Enter amount to withdraw (APX):');
+                    if (amount && confirm(`Are you sure you want to withdraw ${amount} APX from SpecialRewardsDistributor?`)) {
+                      emergencyWithdrawSpecial(amount);
+                    }
+                  }}
+                  disabled={isSpecialRewardsLoading}
+                >
+                  Emergency: Withdraw Funds
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                <strong>Warning:</strong> Emergency withdrawal will remove funds from the contract, preventing users from claiming rewards.
+              </p>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'rules' && (
           <form onSubmit={handleDefineRule} className="p-6 bg-card rounded-xl border border-border">
             <h3 className="font-semibold text-lg mb-4">Define Rule</h3>
