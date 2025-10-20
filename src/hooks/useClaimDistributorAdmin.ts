@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseEther, type Address } from 'viem'
+import { base } from 'viem/chains'
 import { toast } from 'sonner'
 import { CLAIM_DISTRIBUTOR_CONFIG } from '@/config/claimDistributor'
 import { APX_TOKEN_CONFIG } from '@/config/apxToken'
@@ -54,7 +55,9 @@ export function useClaimDistributorAdmin() {
           }
         ] as const,
         functionName: 'approve',
-        args: [CLAIM_DISTRIBUTOR_CONFIG.contractAddress, amountWei]
+        args: [CLAIM_DISTRIBUTOR_CONFIG.contractAddress, amountWei],
+        account: address,
+        chain: base,
       })
 
       return { success: true }
@@ -86,7 +89,9 @@ export function useClaimDistributorAdmin() {
         address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
         abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
         functionName: 'provision',
-        args: [amountWei]
+        args: [amountWei],
+        account: address,
+        chain: base,
       })
 
       return { success: true }
@@ -124,7 +129,9 @@ export function useClaimDistributorAdmin() {
         address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
         abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
         functionName: 'updateConfig',
-        args: [dailyAmountWei, weeklyAmountWei, enabled]
+        args: [dailyAmountWei, weeklyAmountWei, enabled],
+        account: address,
+        chain: base,
       })
 
       return { success: true }
@@ -156,7 +163,9 @@ export function useClaimDistributorAdmin() {
       writeContract({
         address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
         abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
-        functionName: 'toggleClaims'
+        functionName: 'toggleClaims',
+        account: address,
+        chain: base,
       })
 
       return { success: true }
@@ -191,7 +200,9 @@ export function useClaimDistributorAdmin() {
         address: CLAIM_DISTRIBUTOR_CONFIG.contractAddress,
         abi: CLAIM_DISTRIBUTOR_CONFIG.abi,
         functionName: 'emergencyWithdraw',
-        args: [amountWei]
+        args: [amountWei],
+        account: address,
+        chain: base,
       })
 
       return { success: true }
