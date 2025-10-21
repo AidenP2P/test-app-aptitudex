@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Trophy, ExternalLink, Calendar, Users, CheckCircle, Clock } from 'lucide-react'
+import { Trophy, ExternalLink, Calendar, Users, CheckCircle, Clock, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { useSpecialRewards } from '@/hooks/useSpecialRewards'
 import type { SpecialReward } from '@/config/specialRewardsDistributor'
 
@@ -14,6 +15,7 @@ interface SpecialRewardCardProps {
 export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
   const { claimSpecialReward, validateSocialAction, isLoading } = useSpecialRewards()
   const [isValidating, setIsValidating] = useState(false)
+  const [showDevfolioModal, setShowDevfolioModal] = useState(false)
 
   const handleClaim = async () => {
     try {
@@ -32,6 +34,12 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
 
   const handleSocialAction = async () => {
     if (reward.rewardType !== 'social') return
+
+    // Special handling for Devfolio reward
+    if (reward.requirements.action === 'like_devfolio') {
+      setShowDevfolioModal(true)
+      return
+    }
 
     setIsValidating(true)
     try {
@@ -52,6 +60,14 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
     } catch (error) {
       console.error('Social action failed:', error)
       setIsValidating(false)
+    }
+  }
+
+  const handleDevfolioAction = () => {
+    // Close modal and open Devfolio
+    setShowDevfolioModal(false)
+    if (reward.requirements.url) {
+      window.open(reward.requirements.url, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -166,7 +182,7 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
                 <span className="text-white/80 ml-1 text-sm sm:text-base">APX</span>
               </div>
 
-              {reward.isClaimed ? (
+              {reward.isClaimed && reward.requirements.action !== 'like_devfolio' ? (
                 <Button
                   disabled
                   className="bg-green-500/20 text-green-200 hover:bg-green-500/30 cursor-not-allowed border border-green-500/30 text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
@@ -190,7 +206,7 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Not Available
                 </Button>
-              ) : reward.canClaim ? (
+              ) : reward.canClaim || reward.requirements.action === 'like_devfolio' ? (
                 <>
                   {reward.rewardType === 'social' ? (
                     <Button
@@ -256,6 +272,50 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
           </div>
         </div>
       </CardContent>
+
+      {/* Devfolio Modal */}
+      <Dialog open={showDevfolioModal} onOpenChange={setShowDevfolioModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5 text-blue-500" />
+              Manual Process - Alpha Version
+            </DialogTitle>
+            <DialogDescription className="text-left space-y-3 pt-2">
+              <p>
+                In the alpha version, the reward process is manual. To receive your APX tokens:
+              </p>
+              <div className="bg-muted p-3 rounded-lg space-y-2">
+                <p className="font-medium text-foreground">Steps to follow:</p>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <li>Like the project on Devfolio</li>
+                  <li>Add your wallet address as a comment on the project page</li>
+                  <li>Our team will manually distribute the tokens</li>
+                </ol>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Click below to proceed to the Devfolio page.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDevfolioModal(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDevfolioAction}
+              className="flex-1"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Like & Claim
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

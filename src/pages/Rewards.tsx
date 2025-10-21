@@ -106,7 +106,7 @@ const Rewards = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-foreground">My Rewards</h3>
                   <Badge variant="secondary" className="text-xs">
-                    {specialRewards.filter(r => r.canClaim).length} claimable / {specialRewards.length} total
+                    {specialRewards.filter(r => r.canClaim || r.requirements?.action === 'like_devfolio').length} claimable / {specialRewards.length} total
                   </Badge>
                 </div>
                 <div className="space-y-4">
