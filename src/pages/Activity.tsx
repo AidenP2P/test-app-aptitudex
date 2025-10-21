@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { ActivityItem } from '@/components/ActivityItem';
 import { useAppStore } from '@/store/useAppStore';

@@ -36,7 +36,7 @@ export function useTransactionHistory() {
       setError(null)
 
       const currentBlock = await publicClient.getBlockNumber()
-      const startBlock = fromBlock || currentBlock - 10000n // Last ~10k blocks (~1-2 days on Base)
+      const startBlock = fromBlock || currentBlock - 10000n // Last ~10k blocks (~2 days on Base)
 
       console.log(`📊 Fetching transaction history from block ${startBlock} to ${currentBlock}`)
 
