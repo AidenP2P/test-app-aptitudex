@@ -159,35 +159,35 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
               </div>
             )}
 
-            {/* Action Button */}
-            <div className="flex items-center justify-between">
-              <div className="text-white">
-                <span className="text-2xl font-bold">+{reward.amount}</span>
-                <span className="text-white/80 ml-1">APX</span>
+            {/* Action Button - Responsive Layout */}
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+              <div className="text-white text-center sm:text-left">
+                <span className="text-lg sm:text-2xl font-bold">+{reward.amount}</span>
+                <span className="text-white/80 ml-1 text-sm sm:text-base">APX</span>
               </div>
 
               {reward.isClaimed ? (
                 <Button
                   disabled
-                  className="bg-green-500/20 text-green-200 hover:bg-green-500/30 cursor-not-allowed border border-green-500/30"
+                  className="bg-green-500/20 text-green-200 hover:bg-green-500/30 cursor-not-allowed border border-green-500/30 text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Claimed ✓
                 </Button>
               ) : isExpired ? (
                 <Button
                   disabled
-                  className="bg-red-500/20 text-red-200 hover:bg-red-500/30 cursor-not-allowed border border-red-500/30"
+                  className="bg-red-500/20 text-red-200 hover:bg-red-500/30 cursor-not-allowed border border-red-500/30 text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
                 >
-                  <Clock className="w-4 h-4 mr-2" />
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Expired
                 </Button>
               ) : isNotYetStarted ? (
                 <Button
                   disabled
-                  className="bg-yellow-500/20 text-yellow-200 hover:bg-yellow-500/30 cursor-not-allowed border border-yellow-500/30"
+                  className="bg-yellow-500/20 text-yellow-200 hover:bg-yellow-500/30 cursor-not-allowed border border-yellow-500/30 text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
                 >
-                  <Clock className="w-4 h-4 mr-2" />
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Not Available
                 </Button>
               ) : reward.canClaim ? (
@@ -196,17 +196,28 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
                     <Button
                       onClick={handleSocialAction}
                       disabled={isLoading || isValidating}
-                      className="bg-white text-primary hover:bg-white/90 font-medium"
+                      className="bg-white text-primary hover:bg-white/90 font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
                     >
                       {isValidating ? (
                         <>
-                          <Clock className="w-4 h-4 mr-2 animate-spin" />
-                          Validating...
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                          <span className="hidden sm:inline">Validating...</span>
+                          <span className="sm:hidden">Validating</span>
                         </>
                       ) : (
                         <>
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          {reward.requirements.action === 'like_devfolio' ? 'Like & Claim' : 'Complete Action'}
+                          <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          {reward.requirements.action === 'like_devfolio' ? (
+                            <>
+                              <span className="hidden sm:inline">Like & Claim</span>
+                              <span className="sm:hidden">Like</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="hidden sm:inline">Complete Action</span>
+                              <span className="sm:hidden">Complete</span>
+                            </>
+                          )}
                         </>
                       )}
                     </Button>
@@ -214,17 +225,19 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
                     <Button
                       onClick={handleClaim}
                       disabled={isLoading}
-                      className="bg-white text-primary hover:bg-white/90 font-medium"
+                      className="bg-white text-primary hover:bg-white/90 font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
                     >
                       {isLoading ? (
                         <>
-                          <Clock className="w-4 h-4 mr-2 animate-spin" />
-                          Claiming...
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                          <span className="hidden sm:inline">Claiming...</span>
+                          <span className="sm:hidden">Claiming</span>
                         </>
                       ) : (
                         <>
-                          <Trophy className="w-4 h-4 mr-2" />
-                          Claim Reward
+                          <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">Claim Reward</span>
+                          <span className="sm:hidden">Claim</span>
                         </>
                       )}
                     </Button>
@@ -233,9 +246,10 @@ export function SpecialRewardCard({ reward, onClaim }: SpecialRewardCardProps) {
               ) : (
                 <Button
                   disabled
-                  className="bg-white/10 text-white/50 cursor-not-allowed"
+                  className="bg-white/10 text-white/50 cursor-not-allowed text-xs sm:text-sm px-3 sm:px-4 py-2 h-auto sm:h-10 flex-shrink-0"
                 >
-                  Unavailable
+                  <span className="hidden sm:inline">Unavailable</span>
+                  <span className="sm:hidden">N/A</span>
                 </Button>
               )}
             </div>

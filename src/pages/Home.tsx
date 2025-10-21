@@ -1,4 +1,4 @@
-import { Award, Flame, Download, AlertTriangle } from 'lucide-react';
+import { Award, Flame, Download, AlertTriangle, Gift } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { WalletPanel } from '@/components/WalletPanel';
 import { MetricCard } from '@/components/MetricCard';
@@ -160,6 +160,12 @@ const Home = () => {
                 title="My Rewards"
                 description="View all earned APX tokens and rewards"
                 to="/rewards"
+              />
+              <FeatureTile
+                icon={Gift}
+                title="My Benefits"
+                description="Exchange APX tokens for benefits"
+                to="/rewards#my-benefits"
               />
               <FeatureTile
                 icon={Download}

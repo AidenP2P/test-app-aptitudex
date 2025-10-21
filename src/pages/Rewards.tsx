@@ -5,7 +5,7 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { SpecialRewardCard } from '@/components/SpecialRewardCard';
 import { useAppStore } from '@/store/useAppStore';
 import { useSpecialRewards } from '@/hooks/useSpecialRewards';
-import { Award, Zap, Info, Coins } from 'lucide-react';
+import { Award, Zap, Info, Coins, Gift } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { SpecialReward } from '@/config/specialRewardsDistributor';
 
@@ -49,7 +49,7 @@ const Rewards = () => {
   if (!isConnected) {
     return (
       <>
-        <Header title="My Rewards" subtitle="All your earned kudos" />
+        <Header title="Rewards & Benefits" subtitle="APX Token Rewards and Benefits via Aptitude X" />
         <div className="px-6 py-12 text-center">
           <Award className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">
@@ -62,7 +62,7 @@ const Rewards = () => {
   
   return (
     <>
-      <Header title="My Rewards" subtitle="APX token rewards via AptitudeX" />
+      <Header title="Rewards & Benefits" subtitle="APX Token Rewards and Benefits via Aptitude X" />
       
       <div className="px-6 pb-8">
         {/* Explanation Text Block */}
@@ -104,7 +104,7 @@ const Rewards = () => {
             {specialRewards.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-foreground">Special Rewards</h3>
+                  <h3 className="text-lg font-semibold text-foreground">My Rewards</h3>
                   <Badge variant="secondary" className="text-xs">
                     {specialRewards.filter(r => r.canClaim).length} claimable / {specialRewards.length} total
                   </Badge>
@@ -179,6 +179,55 @@ const Rewards = () => {
                 <span className="text-muted-foreground">Special Rewards Balance</span>
               </div>
               <span className="font-medium">{contractBalance} APX</span>
+            </div>
+          </div>
+        )}
+
+        {/* My Benefits Section */}
+        {isConnected && (
+          <div id="my-benefits" className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">My Benefits</h3>
+              <Badge variant="secondary" className="text-xs">
+                0 claimable / 0 total
+              </Badge>
+            </div>
+
+            {/* About Your Benefits */}
+            <div className="mb-6 p-4 bg-card border rounded-lg">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-bold text-white mb-2">About Your Benefits</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your organization enables you through AptitudeX to exchange your tokens for benefits.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Coming Soon Banner */}
+            <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Zap className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-purple-900 mb-2">Benefits Are Coming Soon</h4>
+                  <p className="text-sm text-purple-700 mb-2">
+                    We're working on exciting benefits that you'll be able to unlock with your APX tokens.
+                  </p>
+                  <p className="text-sm text-purple-600 font-medium">
+                    Stay tuned for amazing opportunities! ✨
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* No Benefits Available */}
+            <div className="text-center py-8">
+              <Gift className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                No benefits to get
+              </p>
             </div>
           </div>
         )}
