@@ -74,6 +74,8 @@ interface AppStore {
   // New claim system actions
   updateClaimData: (claimData: Partial<ClaimData>) => void;
   addClaimActivity: (type: 'daily_claim' | 'weekly_claim' | 'streak_bonus', amount: string, streakDay?: number) => void;
+  clearActivity: () => void;
+  setActivity: (activities: Activity[]) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -179,9 +181,23 @@ export const useAppStore = create<AppStore>((set) => ({
   },
 
   addTransaction: (transaction: Activity) => {
-    set((state) => ({
-      activity: [transaction, ...state.activity],
-    }))
+    set((state) => {
+      // Check if transaction already exists to avoid duplicates
+      const existingIndex = state.activity.findIndex(
+        (existing) => existing.id === transaction.id ||
+        (existing.tx && existing.tx === transaction.tx)
+      )
+      
+      if (existingIndex >= 0) {
+        // Update existing transaction
+        const updatedActivity = [...state.activity]
+        updatedActivity[existingIndex] = transaction
+        return { activity: updatedActivity }
+      } else {
+        // Add new transaction
+        return { activity: [transaction, ...state.activity] }
+      }
+    })
   },
 
   // New claim system actions
@@ -211,5 +227,13 @@ export const useAppStore = create<AppStore>((set) => ({
         ...state.activity,
       ],
     }))
+  },
+
+  clearActivity: () => {
+    set({ activity: [] })
+  },
+
+  setActivity: (activities: Activity[]) => {
+    set({ activity: activities })
   },
 }))

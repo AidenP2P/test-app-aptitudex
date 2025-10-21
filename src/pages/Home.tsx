@@ -163,7 +163,7 @@ const Home = () => {
               <FeatureTile
                 icon={Award}
                 title="My Rewards"
-                description="View all earned APX tokens and rewards"
+                description="Check out current rewards campaigns"
                 to="/rewards"
               />
               <FeatureTile
@@ -174,9 +174,9 @@ const Home = () => {
               />
               <FeatureTile
                 icon={Download}
-                title="Daily & Weekly Claims"
+                title="My Daily & Weekly Claims"
                 description={isPaymasterEnabled
-                  ? "Claim your APX rewards (gas-free!)"
+                  ? "Claim your daily and weekly APX rewards"
                   : isPaused
                     ? "Claims disabled (contract paused)"
                     : "Claim your daily and weekly APX rewards"
@@ -185,14 +185,14 @@ const Home = () => {
               />
               <FeatureTile
                 icon={Award}
-                title="Activity"
+                title="My Activity"
                 description="View your transaction history"
                 to="/activity"
               />
               {isAdmin && (
                 <FeatureTile
                   icon={Award}
-                  title="Admin Console"
+                  title="My Admin Console"
                   description="Mint tokens and manage contract"
                   to="/admin"
                 />
