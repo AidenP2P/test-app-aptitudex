@@ -103,26 +103,31 @@ const Home = () => {
                 </Badge>
               )}
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-3">
+              {/* My APX - Full width */}
               <MetricCard
                 icon={Award}
                 label={`My ${tokenSymbol}`}
                 value={isTokenLoading ? 'Loading...' : formattedBalance}
                 variant="default"
               />
-              <MetricCard
-                icon={Flame}
-                label="Daily Streak"
-                value={`${userClaimData ? Number(userClaimData.currentDailyStreak) : 0}d`}
-                variant="highlight"
-              />
-              <div onClick={handlePendingClick} className={hasClaimableTokens ? 'cursor-pointer' : ''}>
+              
+              {/* Daily Streak and Pending - Side by side */}
+              <div className="grid grid-cols-2 gap-3">
                 <MetricCard
-                  icon={Download}
-                  label="Pending"
-                  value={totalClaimable}
-                  variant={hasClaimableTokens ? 'highlight' : 'default'}
+                  icon={Flame}
+                  label="Daily Streak"
+                  value={`${userClaimData ? Number(userClaimData.currentDailyStreak) : 0}d`}
+                  variant="highlight"
                 />
+                <div onClick={handlePendingClick} className={hasClaimableTokens ? 'cursor-pointer' : ''}>
+                  <MetricCard
+                    icon={Download}
+                    label="Pending"
+                    value={totalClaimable}
+                    variant={hasClaimableTokens ? 'highlight' : 'default'}
+                  />
+                </div>
               </div>
             </div>
           </div>
