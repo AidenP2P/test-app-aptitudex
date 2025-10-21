@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { Web3Provider } from "./providers/Web3Provider";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import Home from "./pages/Home";
@@ -20,6 +21,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AppShell>
             <Routes>
               <Route path="/" element={<Home />} />
