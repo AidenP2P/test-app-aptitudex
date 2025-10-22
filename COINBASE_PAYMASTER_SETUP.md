@@ -1,25 +1,25 @@
-# 🔧 Configuration Coinbase Paymaster - Guide Complet
+# 🔧 Coinbase Paymaster Configuration - Complete Guide
 
-## 📋 **Étapes pour obtenir votre Policy ID**
+## 📋 **Steps to Get Your Policy ID**
 
-### **1. Accéder au Portail Coinbase Developer Platform**
+### **1. Access the Coinbase Developer Platform Portal**
 ```bash
-1. Aller sur: https://portal.cdp.coinbase.com/
-2. Se connecter avec votre compte Coinbase
-3. Créer un nouveau projet si nécessaire
+1. Go to: https://portal.cdp.coinbase.com/
+2. Sign in with your Coinbase account
+3. Create a new project if necessary
 ```
 
-### **2. Créer une Policy de Sponsoring**
+### **2. Create a Sponsoring Policy**
 ```bash
-Navigation: Projects → Votre Projet → Paymaster → Policies
+Navigation: Projects → Your Project → Paymaster → Policies
 
-1. Cliquer "Create Policy"
-2. Nommer: "AptitudeX Claims Policy"  
-3. Description: "Sponsoring des claims daily/weekly APX"
+1. Click "Create Policy"
+2. Name: "AptitudeX Claims Policy"
+3. Description: "Sponsoring daily/weekly APX claims"
 4. Type: "Full Sponsorship"
 ```
 
-### **3. Configurer les Restrictions de Policy**
+### **3. Configure Policy Restrictions**
 ```json
 {
   "name": "AptitudeX Claims Policy",
@@ -38,57 +38,57 @@ Navigation: Projects → Votre Projet → Paymaster → Policies
 }
 ```
 
-### **4. Récupérer les Identifiants**
-Après création de la policy, vous obtiendrez :
-- ✅ **Policy ID** (ex: `pol_abc123def456`)
-- ✅ **API Key** (dans Settings → API Keys)
-- ✅ **Project ID** (dans Project Settings)
+### **4. Retrieve Identifiers**
+After creating the policy, you will get:
+- ✅ **Policy ID** (e.g., `pol_abc123def456`)
+- ✅ **API Key** (in Settings → API Keys)
+- ✅ **Project ID** (in Project Settings)
 
-## 🔑 **Configuration dans .env**
+## 🔑 **Configuration in .env**
 
 ```env
-# Remplacer avec vos vraies valeurs du portail CDP
+# Replace with your real values from the CDP portal
 VITE_COINBASE_POLICY_ID=pol_your_real_policy_id_here
 VITE_COINBASE_API_KEY=cdp_your_real_api_key_here
 VITE_COINBASE_PROJECT_ID=your_real_project_id_here
 ```
 
-## 🧪 **Mode Test vs Production**
+## 🧪 **Test vs Production Mode**
 
-### **Option 1: Tests SANS Paymaster (recommandé pour commencer)**
+### **Option 1: Tests WITHOUT Paymaster (recommended to start)**
 ```env
-# Laisser vide pour utiliser les transactions normales avec gas
+# Leave empty to use normal transactions with gas
 VITE_COINBASE_POLICY_ID=
 VITE_COINBASE_API_KEY=
 VITE_COINBASE_PROJECT_ID=
 ```
 
-### **Option 2: Tests AVEC Paymaster (après configuration CDP)**
+### **Option 2: Tests WITH Paymaster (after CDP configuration)**
 ```env
-# Utiliser vos vraies valeurs du portail CDP
+# Use your real values from the CDP portal
 VITE_COINBASE_POLICY_ID=pol_abc123def456
 VITE_COINBASE_API_KEY=cdp_xyz789ghi012
 VITE_COINBASE_PROJECT_ID=proj-456def789ghi
 ```
 
-## 📍 **Liens Utiles**
+## 📍 **Useful Links**
 
-- **Portail CDP**: https://portal.cdp.coinbase.com/
-- **Documentation Paymaster**: https://docs.cdp.coinbase.com/paymaster/
+- **CDP Portal**: https://portal.cdp.coinbase.com/
+- **Paymaster Documentation**: https://docs.cdp.coinbase.com/paymaster/
 - **Base Mainnet RPC**: https://api.developer.coinbase.com/rpc/v1/base
 
-## ⚠️ **Notes Importantes**
+## ⚠️ **Important Notes**
 
-1. **Les Policy IDs ne sont PAS visibles par défaut** - il faut les créer
-2. **Base Mainnet** nécessite une vraie Policy (pas de testnet)
-3. **Quotas** : Vérifiez les limites de votre plan CDP
-4. **Facturation** : Les transactions gasless sont facturées à votre compte CDP
+1. **Policy IDs are NOT visible by default** - you need to create them
+2. **Base Mainnet** requires a real Policy (no testnet)
+3. **Quotas**: Check your CDP plan limits
+4. **Billing**: Gasless transactions are billed to your CDP account
 
-## 🚀 **Recommandation**
+## 🚀 **Recommendation**
 
-**Pour l'instant, teste d'abord SANS Paymaster :**
-1. Laisse les variables Paymaster vides dans .env
-2. Teste l'interface /claim avec transactions normales (avec gas)
-3. Configure le Paymaster plus tard une fois que tout fonctionne
+**For now, test first WITHOUT Paymaster:**
+1. Leave the Paymaster variables empty in .env
+2. Test the /claim interface with normal transactions (with gas)
+3. Configure the Paymaster later once everything works
 
-Le système fonctionne parfaitement avec ou sans Paymaster ! 🎯
+The system works perfectly with or without Paymaster! 🎯

@@ -1,13 +1,13 @@
-# Claims System V2 - Architecture Documentationa
+# Claims System V2 - Architecture Documentation
 
-## 🏗️ Nouvelle Architecture
+## 🏗️ New Architecture
 
 ### Smart Contract ClaimDistributor
 
 ```solidity
-// Contract principal pour la distribution des rewards
+// Main contract for reward distribution
 contract ClaimDistributor {
-    // Gestion des claims daily/weekly
+    // Daily/weekly claims management
     function claimDaily() external;
     function claimWeekly() external;
     
@@ -15,78 +15,78 @@ contract ClaimDistributor {
     function provision(uint256 amount) external onlyOwner;
     function updateConfig(uint256 dailyAmount, uint256 weeklyAmount, bool enabled) external onlyOwner;
     
-    // Views pour frontend
+    // Views for frontend
     function canClaimDaily(address user) external view returns (bool);
     function getRewardAmounts(address user) external view returns (uint256, uint256);
 }
 ```
 
-**Fonctionnalités:**
-- ✅ Claims autonomes sans intervention admin
-- ✅ Provisioning par l'admin pour alimenter le contract
-- ✅ Calcul automatique des streaks et bonus
-- ✅ Configuration dynamique des rewards
-- ✅ Contrôles d'urgence
+**Features:**
+- ✅ Autonomous claims without admin intervention
+- ✅ Admin provisioning to fund the contract
+- ✅ Automatic calculation of streaks and bonuses
+- ✅ Dynamic reward configuration
+- ✅ Emergency controls
 
-### Intégration Paymaster Coinbase
+### Coinbase Paymaster Integration
 
 ```typescript
-// Configuration gasless via Coinbase Developer Platform
+// Gasless configuration via Coinbase Developer Platform
 const PAYMASTER_CONFIG = {
   rpcUrl: 'https://api.developer.coinbase.com/rpc/v1/base',
   policyId: 'aptitudex-claims-policy',
-  sponsorshipMode: 'FULL', // 100% des frais sponsorisés
+  sponsorshipMode: 'FULL', // 100% of fees sponsored
   supportedMethods: ['claimDaily', 'claimWeekly']
 }
 ```
 
-**Bénéfices:**
-- ✅ Claims entièrement gasless pour les utilisateurs
-- ✅ Politiques de sponsoring configurables
-- ✅ Fallback vers transactions normales si nécessaire
-- ✅ Monitoring et quotas de sponsoring
+**Benefits:**
+- ✅ Fully gasless claims for users
+- ✅ Configurable sponsoring policies
+- ✅ Fallback to normal transactions if necessary
+- ✅ Monitoring and sponsoring quotas
 
-### Frontend Refactorisé
+### Refactored Frontend
 
-#### Page Home - Vue d'ensemble
+#### Home Page - Overview
 ```typescript
-// Affichage des statistiques générales uniquement
+// Display general statistics only
 <MetricCard label="Daily Streak" value={`${streak}d`} />
 <MetricCard label="APX Claimed" value={`${totalClaimed}`} />
 
-// Lien vers la page Claims dédiée
-<FeatureTile 
+// Link to dedicated Claims page
+<FeatureTile
   title="Daily & Weekly Claims"
   description="Claim your APX rewards (gas-free!)"
   to="/claim"
 />
 ```
 
-#### Page Claims - Interface complète
+#### Claims Page - Complete interface
 ```typescript
-// Interface complète avec nouveau système
+// Complete interface with new system
 const { claimDaily, claimWeekly, isPaymasterEnabled } = useClaimDistributor()
 
-<ClaimCard 
+<ClaimCard
   title="Daily Reward"
   description={isPaymasterEnabled ? "Claim daily APX (gas-free!)" : "Claim your daily APX tokens"}
   canClaim={canClaimDaily}
-  isAdmin={false} // Plus de restriction admin
+  isAdmin={false} // No more admin restriction
   onClaim={claimDaily}
 />
 ```
 
-#### Page Admin - Provisioning et configuration
+#### Admin Page - Provisioning and configuration
 ```typescript
-// Nouveau tab ClaimDistributor
+// New ClaimDistributor tab
 <div className="claims-admin">
-  {/* Provisioning du contract */}
+  {/* Contract provisioning */}
   <form onSubmit={handleProvision}>
     <Input placeholder="1000000" /> {/* Amount APX */}
     <Button>Provision Contract</Button>
   </form>
 
-  {/* Configuration des rewards */}
+  {/* Rewards configuration */}
   <form onSubmit={handleUpdateConfig}>
     <Input value={dailyAmount} /> {/* 10 APX */}
     <Input value={weeklyAmount} /> {/* 100 APX */}
@@ -95,110 +95,110 @@ const { claimDaily, claimWeekly, isPaymasterEnabled } = useClaimDistributor()
 </div>
 ```
 
-## 📁 Structure des Fichiers
+## 📁 File Structure
 
 ### Smart Contracts
 ```
 contracts/
-├── ClaimDistributor.sol          # Contract principal de distribution
+├── ClaimDistributor.sol          # Main distribution contract
 └── deployment/
-    ├── deploy.js                 # Script de déploiement
-    └── verify.js                 # Vérification sur Basescan
+    ├── deploy.js                 # Deployment script
+    └── verify.js                 # Basescan verification
 ```
 
 ### Configuration
 ```
 src/config/
-├── claimDistributor.ts           # ABI et configuration contract
-├── paymaster.ts                  # Configuration Coinbase Paymaster
-└── chains.ts                     # Configuration réseau Base
+├── claimDistributor.ts           # ABI and contract configuration
+├── paymaster.ts                  # Coinbase Paymaster configuration
+└── chains.ts                     # Base network configuration
 ```
 
-### Hooks React
+### React Hooks
 ```
 src/hooks/
-├── useClaimDistributor.ts        # Hook principal Smart Contract
-├── usePaymaster.ts               # Hook transactions gasless
+├── useClaimDistributor.ts        # Main Smart Contract hook
+├── usePaymaster.ts               # Gasless transactions hook
 └── legacy/
-    └── useClaimSystem.ts         # Ancien système (déprécié)
+    └── useClaimSystem.ts         # Old system (deprecated)
 ```
 
-### Pages Refactorisées
+### Refactored Pages
 ```
 src/pages/
-├── Home.tsx                      # Stats générales + liens
-├── Claim.tsx                     # Interface complète claims
+├── Home.tsx                      # General stats + links
+├── Claim.tsx                     # Complete claims interface
 └── Admin.tsx                     # Provisioning + configuration
 ```
 
-## 🚀 Guide de Déploiement
+## 🚀 Deployment Guide
 
-### Étape 1: Déploiement Smart Contract
+### Step 1: Smart Contract Deployment
 
 ```bash
-# Compilation du contract
+# Contract compilation
 npx hardhat compile
 
-# Déploiement sur Base Mainnet
+# Deployment on Base Mainnet
 npx hardhat run scripts/deploy.js --network base
 
-# Vérification sur Basescan
+# Verification on Basescan
 npx hardhat verify --network base <CONTRACT_ADDRESS> <APX_TOKEN_ADDRESS> <OWNER_ADDRESS>
 ```
 
-### Étape 2: Configuration Paymaster Coinbase
+### Step 2: Coinbase Paymaster Configuration
 
 ```bash
-# Variables d'environnement
+# Environment variables
 VITE_COINBASE_PAYMASTER_RPC=https://api.developer.coinbase.com/rpc/v1/base
 VITE_COINBASE_POLICY_ID=aptitudex-claims-policy
 VITE_COINBASE_API_KEY=cdp_...
 VITE_COINBASE_PROJECT_ID=...
 ```
 
-### Étape 3: Mise à jour Frontend
+### Step 3: Frontend Update
 
-1. **Mettre à jour l'adresse du contract**
+1. **Update contract address**
 ```typescript
 // src/config/claimDistributor.ts
 export const CLAIM_DISTRIBUTOR_CONFIG = {
-  contractAddress: '0x...' as Address, // Adresse déployée
-  abi: [...] // ABI généré
+  contractAddress: '0x...' as Address, // Deployed address
+  abi: [...] // Generated ABI
 }
 ```
 
-2. **Tester l'intégration**
+2. **Test integration**
 ```bash
 npm run dev
-# Vérifier les claims gasless en local
+# Verify gasless claims locally
 ```
 
-### Étape 4: Provisioning Initial
+### Step 4: Initial Provisioning
 
-1. **Connexion admin au frontend**
-2. **Mint initial d'APX tokens (ex: 10M APX)**
-3. **Provision du ClaimDistributor (ex: 1M APX)**
-4. **Configuration des rewards (10 APX daily, 100 APX weekly)**
-5. **Activation des claims**
+1. **Admin connection to frontend**
+2. **Initial APX token mint (e.g., 10M APX)**
+3. **ClaimDistributor provision (e.g., 1M APX)**
+4. **Rewards configuration (10 APX daily, 100 APX weekly)**
+5. **Claims activation**
 
-## 🔄 Migration desde V1
+## 🔄 Migration from V1
 
-### Base de données
-- ✅ **localStorage** : Compatible, pas de migration nécessaire
-- ✅ **Streaks** : Préservés via le système de grâce existant
-- ✅ **Historique** : Maintenu dans l'état local
+### Database
+- ✅ **localStorage**: Compatible, no migration required
+- ✅ **Streaks**: Preserved via existing grace system
+- ✅ **History**: Maintained in local state
 
-### Contrats existants
-- ✅ **APX Token** : Aucun changement requis
-- ✅ **Permissions admin** : Conservées pour le provisioning
-- ✅ **Legacy claims** : Restent disponibles pendant la transition
+### Existing contracts
+- ✅ **APX Token**: No changes required
+- ✅ **Admin permissions**: Preserved for provisioning
+- ✅ **Legacy claims**: Remain available during transition
 
-### Interface utilisateur
-- ✅ **Navigation** : Menu Claims existant redirige vers nouvelle interface
-- ✅ **Composants** : ClaimCard et CountdownTimer réutilisés
-- ✅ **Styling** : Design cohérent avec l'existant
+### User interface
+- ✅ **Navigation**: Existing Claims menu redirects to new interface
+- ✅ **Components**: ClaimCard and CountdownTimer reused
+- ✅ **Styling**: Consistent design with existing
 
-## 📊 Métriques et Monitoring
+## 📊 Metrics and Monitoring
 
 ### Smart Contract Events
 ```solidity
@@ -208,9 +208,9 @@ event Provisioned(address indexed admin, uint256 amount, uint256 newBalance);
 event ConfigUpdated(uint256 dailyAmount, uint256 weeklyAmount, bool enabled);
 ```
 
-### Analytics Frontend
+### Frontend Analytics
 ```typescript
-// Tracking des claims gasless
+// Gasless claims tracking
 analytics.track('claim_daily', {
   amount: rewardAmount,
   streak: currentStreak,
@@ -219,59 +219,59 @@ analytics.track('claim_daily', {
 })
 ```
 
-### Dashboards Admin
-- **Contract Balance** : Monitoring en temps réel
-- **Claims per Day** : Statistiques d'usage
-- **Paymaster Usage** : Coûts de sponsoring
-- **User Engagement** : Streaks et rétention
+### Admin Dashboards
+- **Contract Balance**: Real-time monitoring
+- **Claims per Day**: Usage statistics
+- **Paymaster Usage**: Sponsoring costs
+- **User Engagement**: Streaks and retention
 
-## 🔒 Sécurité
+## 🔒 Security
 
 ### Smart Contract
-- ✅ **OpenZeppelin** : ReentrancyGuard, Ownable
-- ✅ **Access Control** : Admin functions protected
-- ✅ **Emergency Controls** : Pause et withdrawal
-- ✅ **Input Validation** : Tous les paramètres validés
+- ✅ **OpenZeppelin**: ReentrancyGuard, Ownable
+- ✅ **Access Control**: Admin functions protected
+- ✅ **Emergency Controls**: Pause and withdrawal
+- ✅ **Input Validation**: All parameters validated
 
 ### Frontend
-- ✅ **Type Safety** : TypeScript strict
-- ✅ **Address Validation** : viem address checks
-- ✅ **Error Handling** : Graceful fallbacks
-- ✅ **Rate Limiting** : Cooldowns respectés
+- ✅ **Type Safety**: Strict TypeScript
+- ✅ **Address Validation**: viem address checks
+- ✅ **Error Handling**: Graceful fallbacks
+- ✅ **Rate Limiting**: Cooldowns respected
 
 ### Paymaster
-- ✅ **Policy Limits** : Gas limits et quotas
-- ✅ **Method Whitelist** : Seuls claims sponsorisés
-- ✅ **User Validation** : Anti-spam protections
+- ✅ **Policy Limits**: Gas limits and quotas
+- ✅ **Method Whitelist**: Only claims sponsored
+- ✅ **User Validation**: Anti-spam protections
 
-## 🎯 Résultats Attendus
+## 🎯 Expected Results
 
-### Expérience Utilisateur
-- **Claims sans friction** : 0 gas fees pour les utilisateurs
-- **Interface dédiée** : Page Claims centralisée
-- **Accessibilité** : Tous les wallets peuvent claim
-- **Performance** : Transactions rapides via Paymaster
+### User Experience
+- **Frictionless claims**: 0 gas fees for users
+- **Dedicated interface**: Centralized Claims page
+- **Accessibility**: All wallets can claim
+- **Performance**: Fast transactions via Paymaster
 
-### Scalabilité
-- **Distribution automatique** : Plus d'intervention manuelle
-- **Provisioning flexible** : Admin peut ajuster les rewards
-- **Monitoring intégré** : Visibilité sur l'usage et les coûts
+### Scalability
+- **Automatic distribution**: No more manual intervention
+- **Flexible provisioning**: Admin can adjust rewards
+- **Integrated monitoring**: Visibility on usage and costs
 
 ### Adoption
-- **Barrière d'entrée réduite** : Pas de gas fees
-- **Engagement augmenté** : Streaks et bonus motivants
-- **Communauté active** : Claims quotidiens/hebdomadaires
+- **Reduced entry barrier**: No gas fees
+- **Increased engagement**: Motivating streaks and bonuses
+- **Active community**: Daily/weekly claims
 
-## 📞 Support et Maintenance
+## 📞 Support and Maintenance
 
-### Points de contact
-- **Smart Contract** : Upgradeable via proxy si nécessaire
-- **Paymaster** : Support Coinbase Developer Platform
-- **Frontend** : Monitoring via Vercel/Netlify
+### Contact points
+- **Smart Contract**: Upgradeable via proxy if necessary
+- **Paymaster**: Coinbase Developer Platform support
+- **Frontend**: Monitoring via Vercel/Netlify
 
-### Procédures d'urgence
-1. **Disable claims** : Admin peut désactiver via toggle
-2. **Withdraw funds** : Emergency withdrawal function
-3. **Fallback mode** : Claims normaux si Paymaster indisponible
+### Emergency procedures
+1. **Disable claims**: Admin can disable via toggle
+2. **Withdraw funds**: Emergency withdrawal function
+3. **Fallback mode**: Normal claims if Paymaster unavailable
 
 ---

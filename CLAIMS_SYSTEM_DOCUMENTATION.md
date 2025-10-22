@@ -1,34 +1,34 @@
-# 🎯 Système de Claims APX - Documentation Complète
+# 🎯 APX Claims System - Complete Documentation
 
-## 📋 Vue d'Ensemble
+## 📋 Overview
 
-Le système de Claims APX permet aux utilisateurs de gagner des tokens APX de manière automatique via des récompenses **Daily (quotidiennes)** et **Weekly (hebdomadaires)** avec un système de **streak** progressif.
+The APX Claims system allows users to automatically earn APX tokens through **Daily** and **Weekly** rewards with a progressive **streak** system.
 
-### ✨ Fonctionnalités Principales
+### ✨ Main Features
 
-- **Claims Daily** : 10 APX par jour (base)
-- **Claims Weekly** : 100 APX par semaine (base)
-- **Système de Streak** : Bonus progressifs pour les claims consécutifs
-- **Multiplicateurs** : Jusqu'à +100% de bonus après 100 jours de streak
-- **Cooldowns** : 24h pour daily, 7 jours pour weekly
-- **Persistance** : Données sauvegardées dans localStorage
-- **Interface temps réel** : Timers de countdown dynamiques
+- **Daily Claims**: 10 APX per day (base)
+- **Weekly Claims**: 100 APX per week (base)
+- **Streak System**: Progressive bonuses for consecutive claims
+- **Multipliers**: Up to +100% bonus after 100 days of streak
+- **Cooldowns**: 24h for daily, 7 days for weekly
+- **Persistence**: Data saved in localStorage
+- **Real-time Interface**: Dynamic countdown timers
 
-## 🏗️ Architecture Technique
+## 🏗️ Technical Architecture
 
-### Fichiers Principaux
+### Main Files
 
 ```
 src/
-├── config/claimSystem.ts          # Configuration centrale
-├── services/claimStorage.ts       # Persistance localStorage
-├── hooks/useClaimSystem.ts        # Hook principal de logique
-├── components/ClaimCard.tsx       # Interface de claim
-├── components/CountdownTimer.tsx  # Composants de timer
-└── pages/Home.tsx                 # Intégration UI
+├── config/claimSystem.ts          # Central configuration
+├── services/claimStorage.ts       # localStorage persistence
+├── hooks/useClaimSystem.ts        # Main logic hook
+├── components/ClaimCard.tsx       # Claim interface
+├── components/CountdownTimer.tsx  # Timer components
+└── pages/Home.tsx                 # UI integration
 ```
 
-### Structure des Données
+### Data Structure
 
 ```typescript
 interface UserClaimData {
@@ -46,61 +46,61 @@ interface UserClaimData {
 }
 ```
 
-## 🎮 Utilisation
+## 🎮 Usage
 
-### Pour les Utilisateurs
+### For Users
 
-1. **Connexion Wallet**
-   - Connecter son wallet à l'application
-   - Les données de claim sont automatiquement chargées
+1. **Wallet Connection**
+   - Connect your wallet to the application
+   - Claim data is automatically loaded
 
-2. **Claims Daily**
-   - Disponible toutes les 24 heures
-   - Montant de base : 10 APX
-   - Bonus de streak automatique
+2. **Daily Claims**
+   - Available every 24 hours
+   - Base amount: 10 APX
+   - Automatic streak bonus
 
-3. **Claims Weekly**  
-   - Disponible toutes les 7 jours
-   - Montant de base : 100 APX
-   - Bonus de streak plus important
+3. **Weekly Claims**
+   - Available every 7 days
+   - Base amount: 100 APX
+   - Higher streak bonus
 
-4. **Système de Streak**
-   - Se maintient automatiquement avec des claims réguliers
-   - 2 heures de grâce après l'expiration du cooldown
-   - Bonus visibles dans l'interface
+4. **Streak System**
+   - Maintained automatically with regular claims
+   - 2-hour grace period after cooldown expiration
+   - Bonuses visible in the interface
 
-### Pour les Admins
+### For Admins
 
-#### Prérequis Admin
-- Le wallet connecté doit être le **owner du contrat APX**
-- Adresse admin configurée : `0xF35EeFB35B13d908497BF51Fbc3f0f798f9f93f4`
+#### Admin Requirements
+- Connected wallet must be the **APX contract owner**
+- Admin address configured: `0xF35EeFB35B13d908497BF51Fbc3f0f798f9f93f4`
 
-#### Actions Admin
-1. **Mint automatique** lors des claims utilisateurs
-2. **Gestion des montants** via configuration
-3. **Monitoring** des claims via logs
+#### Admin Actions
+1. **Automatic minting** during user claims
+2. **Amount management** via configuration
+3. **Monitoring** claims via logs
 
 ## ⚙️ Configuration
 
-### Montants de Rewards
+### Reward Amounts
 
 ```typescript
-// Fichier: src/config/claimSystem.ts
+// File: src/config/claimSystem.ts
 export const CLAIM_CONFIG = {
   dailyReward: {
-    baseAmount: '10',     // 10 APX par jour
+    baseAmount: '10',     // 10 APX per day
     streakMultipliers: {
-      7: 1.2,   // +20% après 7 jours
-      30: 1.5,  // +50% après 30 jours  
-      100: 2.0, // +100% après 100 jours
+      7: 1.2,   // +20% after 7 days
+      30: 1.5,  // +50% after 30 days
+      100: 2.0, // +100% after 100 days
     }
   },
   weeklyReward: {
-    baseAmount: '100',    // 100 APX par semaine
+    baseAmount: '100',    // 100 APX per week
     streakMultipliers: {
-      4: 1.25,   // +25% après 4 semaines
-      12: 1.5,   // +50% après 12 semaines
-      52: 2.0,   // +100% après 52 semaines
+      4: 1.25,   // +25% after 4 weeks
+      12: 1.5,   // +50% after 12 weeks
+      52: 2.0,   // +100% after 52 weeks
     }
   }
 }
@@ -110,36 +110,36 @@ export const CLAIM_CONFIG = {
 
 ```typescript
 cooldowns: {
-  daily: 24 * 60 * 60 * 1000,      // 24 heures
-  weekly: 7 * 24 * 60 * 60 * 1000, // 7 jours
+  daily: 24 * 60 * 60 * 1000,      // 24 hours
+  weekly: 7 * 24 * 60 * 60 * 1000, // 7 days
 }
 ```
 
-## 🎯 Exemples de Calculs
+## 🎯 Calculation Examples
 
 ### Daily Claims
 
-| Streak | Base APX | Multiplicateur | Total APX | Bonus |
-|--------|----------|----------------|-----------|-------|
-| 1-6 jours | 10 | 1.0x | 10 APX | 0% |
-| 7-29 jours | 10 | 1.2x | 12 APX | +20% |
-| 30-99 jours | 10 | 1.5x | 15 APX | +50% |
-| 100+ jours | 10 | 2.0x | 20 APX | +100% |
+| Streak | Base APX | Multiplier | Total APX | Bonus |
+|--------|----------|------------|-----------|-------|
+| 1-6 days | 10 | 1.0x | 10 APX | 0% |
+| 7-29 days | 10 | 1.2x | 12 APX | +20% |
+| 30-99 days | 10 | 1.5x | 15 APX | +50% |
+| 100+ days | 10 | 2.0x | 20 APX | +100% |
 
 ### Weekly Claims
 
-| Streak | Base APX | Multiplicateur | Total APX | Bonus |
-|--------|----------|----------------|-----------|-------|
-| 1-3 semaines | 100 | 1.0x | 100 APX | 0% |
-| 4-11 semaines | 100 | 1.25x | 125 APX | +25% |
-| 12-51 semaines | 100 | 1.5x | 150 APX | +50% |
-| 52+ semaines | 100 | 2.0x | 200 APX | +100% |
+| Streak | Base APX | Multiplier | Total APX | Bonus |
+|--------|----------|------------|-----------|-------|
+| 1-3 weeks | 100 | 1.0x | 100 APX | 0% |
+| 4-11 weeks | 100 | 1.25x | 125 APX | +25% |
+| 12-51 weeks | 100 | 1.5x | 150 APX | +50% |
+| 52+ weeks | 100 | 2.0x | 200 APX | +100% |
 
-## 🎨 Interface Utilisateur
+## 🎨 User Interface
 
-### Page d'Accueil
+### Home Page
 
-L'interface Claims est intégrée directement dans la page d'accueil :
+The Claims interface is integrated directly into the home page:
 
 ```
 ┌─────────────────────────────────┐
@@ -153,12 +153,12 @@ L'interface Claims est intégrée directement dans la page d'accueil :
 └─────────────────────────────────┘
 ```
 
-### États Visuels
+### Visual States
 
-- **🟢 Vert** : Claim disponible
-- **🟠 Orange** : En attente (cooldown actif)  
-- **🔵 Bleu** : Informations générales
-- **⏰ Timer** : Countdown temps réel
+- **🟢 Green**: Claim available
+- **🟠 Orange**: Waiting (cooldown active)
+- **🔵 Blue**: General information
+- **⏰ Timer**: Real-time countdown
 
 ## 🔧 API Hooks
 
@@ -192,25 +192,25 @@ const {
 } = useClaimData()
 ```
 
-## 🛡️ Sécurité
+## 🛡️ Security
 
-### Validations Côté Client
-- **Cooldown strict** : Vérification temporelle
-- **Protection spam** : États de loading
-- **Validation admin** : Contrôle des permissions
+### Client-Side Validations
+- **Strict cooldown**: Temporal verification
+- **Spam protection**: Loading states
+- **Admin validation**: Permission control
 
-### Validations Côté Blockchain
-- **Seul l'admin** peut mint des APX
-- **Montants validés** avant minting
-- **Transaction logs** pour audit
+### Blockchain-Side Validations
+- **Only admin** can mint APX
+- **Amounts validated** before minting
+- **Transaction logs** for audit
 
-### Gestion des Erreurs
-- **Wallet non connecté** → Message d'erreur
-- **Permissions insuffisantes** → Notification admin requis
-- **Cooldown actif** → Affichage du timer
-- **Échec du minting** → Retry automatique
+### Error Handling
+- **Wallet not connected** → Error message
+- **Insufficient permissions** → Admin required notification
+- **Active cooldown** → Timer display
+- **Minting failure** → Automatic retry
 
-## 📊 Persistance des Données
+## 📊 Data Persistence
 
 ### localStorage Structure
 
@@ -218,7 +218,7 @@ const {
 {
   "aptitudex_claim_data_0x123...": {
     "lastDailyClaim": "2025-01-15T10:30:00Z",
-    "lastWeeklyClaim": "2025-01-14T09:00:00Z", 
+    "lastWeeklyClaim": "2025-01-14T09:00:00Z",
     "currentDailyStreak": 5,
     "currentWeeklyStreak": 2,
     "totalDailyClaims": 45,
@@ -236,28 +236,28 @@ const {
 ### Backup/Restore
 
 ```typescript
-// Export des données
+// Export data
 const backupData = ClaimStorageService.exportUserData(address)
 
-// Import des données  
+// Import data
 const success = ClaimStorageService.importUserData(address, backupData)
 ```
 
-## 🚀 Déploiement
+## 🚀 Deployment
 
-### Prérequis
-- ✅ Contrat APX déployé sur Base
-- ✅ Wallet admin configuré
-- ✅ RPC Base fonctionnel
+### Prerequisites
+- ✅ APX contract deployed on Base
+- ✅ Admin wallet configured
+- ✅ Base RPC functional
 
-### Variables d'Environnement
+### Environment Variables
 ```env
 VITE_CHAIN_ID=8453
 VITE_RPC_URL=https://mainnet.base.org
 VITE_ONCHAINKIT_API_KEY=optional_for_ens
 ```
 
-### Configuration APX Token
+### APX Token Configuration
 ```typescript
 // src/config/apxToken.ts
 export const APX_TOKEN_CONFIG = {
@@ -267,17 +267,17 @@ export const APX_TOKEN_CONFIG = {
 }
 ```
 
-## 📈 Métriques et Analytics
+## 📈 Metrics and Analytics
 
-### Données Trackées
-- **Total APX distribué** par période
-- **Nombre de claims** daily/weekly
-- **Streaks moyens** des utilisateurs
-- **Rétention** via système de streak
+### Tracked Data
+- **Total APX distributed** per period
+- **Number of claims** daily/weekly
+- **Average user streaks**
+- **Retention** via streak system
 
-### Logs de Debug
+### Debug Logs
 ```javascript
-// Console logs automatiques
+// Automatic console logs
 🔍 Wallet connected - Address: 0x123...
 🔍 ENS Debug - Address: 0x123...
 🔍 ENS Detection - Text: username.base.eth
@@ -285,29 +285,29 @@ export const APX_TOKEN_CONFIG = {
 
 ## 🛠️ Maintenance
 
-### Nettoyage Automatique
+### Automatic Cleanup
 ```typescript
-// Nettoie les données anciennes (>365 jours)
+// Cleans old data (>365 days)
 const cleanedCount = ClaimStorageService.cleanupOldData()
 ```
 
-### Statistiques Storage
+### Storage Statistics
 ```typescript
 const stats = ClaimStorageService.getStorageStats()
 // { totalUsers, totalStorage, oldestEntry, newestEntry }
 ```
 
-## 🎯 Évolutions Futures
+## 🎯 Future Developments
 
-### Prochaines Fonctionnalités
-- **Smart Contract Claims** : Logique onchain
-- **Système de Referral** : Bonus pour parrains
-- **NFT Rewards** : Pour streaks exceptionnels  
-- **Leaderboard** : Classement communautaire
-- **Push Notifications** : Alertes claims disponibles
+### Upcoming Features
+- **Smart Contract Claims**: Onchain logic
+- **Referral System**: Bonus for referrers
+- **NFT Rewards**: For exceptional streaks
+- **Leaderboard**: Community ranking
+- **Push Notifications**: Available claims alerts
 
-### Migration Smart Contract
-Le système actuel (frontend + minting) peut facilement migrer vers un smart contract :
+### Smart Contract Migration
+The current system (frontend + minting) can easily migrate to a smart contract:
 
 ```solidity
 contract APXClaimSystem {
@@ -315,7 +315,7 @@ contract APXClaimSystem {
     mapping(address => uint256) public dailyStreak;
     
     function claimDaily() external {
-        // Logique onchain
+        // Onchain logic
     }
 }
 ```
@@ -326,19 +326,19 @@ contract APXClaimSystem {
 
 ### FAQ
 
-**Q: Mon streak a été reset, pourquoi ?**
-R: Un streak se reset si plus de 26h s'écoulent entre deux claims daily (24h + 2h de grâce).
+**Q: My streak was reset, why?**
+A: A streak resets if more than 26h elapse between two daily claims (24h + 2h grace period).
 
-**Q: Pourquoi je ne peux pas claim ?**
-R: Seuls les wallets admin peuvent mint des APX. Connectez le wallet admin configuré.
+**Q: Why can't I claim?**
+A: Only admin wallets can mint APX. Connect the configured admin wallet.
 
-**Q: Mes données sont-elles sauvegardées ?**
-R: Oui, dans localStorage avec possibilité d'export/import.
+**Q: Is my data saved?**
+A: Yes, in localStorage with export/import possibility.
 
 ### Contact
-- GitHub Issues pour bugs
-- Discord pour support communautaire
+- GitHub Issues for bugs
+- Discord for community support
 
 ---
 
-**🎉 Le système de Claims APX est maintenant opérationnel !**
+**🎉 The APX Claims system is now operational!**
