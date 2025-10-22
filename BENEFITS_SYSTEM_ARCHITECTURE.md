@@ -1,27 +1,27 @@
 # 🎁 Benefits System Architecture
 
-## Vue d'ensemble
+## Overview
 
-Le système de Benefits permet aux utilisateurs d'échanger leurs tokens APX contre des bénéfices réels. Architecture simplifiée avec Smart Contract + collecte email post-achat.
+The Benefits system allows users to exchange their APX tokens for real benefits. Simplified architecture with Smart Contract + post-purchase email collection.
 
-## 🏗️ Architecture Globale
+## 🏗️ Global Architecture
 
 ```mermaid
 graph TD
-    A[User sélectionne bénéfice] --> B[Modal: Confirmation + Conditions]
+    A[User selects benefit] --> B[Modal: Confirmation + Conditions]
     B --> C[Transaction: BenefitsManagement.redeemBenefit]
     C --> D[APX tokens burned on-chain]
     D --> E[Event BenefitRedeemed + Order ID]
-    E --> F[Formulaire post-achat: Email simple]
-    F --> G[Storage local + CSV export admin]
+    E --> F[Post-purchase form: Simple email]
+    F --> G[Local storage + CSV export admin]
     
-    H[Admin Panel] --> I[Liste achats + Export contacts]
-    I --> J[Process manual de distribution]
+    H[Admin Panel] --> I[Purchase list + Export contacts]
+    I --> J[Manual distribution process]
 ```
 
 ## 📋 Smart Contract BenefitsManagement
 
-### Structure des données
+### Data Structure
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -35,15 +35,15 @@ contract BenefitsManagement is Ownable, ReentrancyGuard {
     IERC20 public immutable apxToken;
     
     struct Benefit {
-        uint256 priceAPX;           // Prix en APX (en wei)
-        string title;               // Titre du bénéfice
-        string description;         // Description courte
-        string mechanics;           // Mécanique (1 ligne)
-        string guardrails;          // Garde-fous (limites, délais)
-        string tokenomics;          // Badge tokenomics (100% burn, gasless)
-        bool isActive;              // Actif/inactif
-        uint256 totalRedeemed;      // Nombre total de rachats
-        uint256 maxRedemptions;     // Limite globale (0 = illimité)
+        uint256 priceAPX;           // Price in APX (in wei)
+        string title;               // Benefit title
+        string description;         // Short description
+        string mechanics;           // Mechanics (1 line)
+        string guardrails;          // Guardrails (limits, deadlines)
+        string tokenomics;          // Tokenomics badge (100% burn, gasless)
+        bool isActive;              // Active/inactive
+        uint256 totalRedeemed;      // Total number of redemptions
+        uint256 maxRedemptions;     // Global limit (0 = unlimited)
     }
     
     struct Redemption {
@@ -52,20 +52,20 @@ contract BenefitsManagement is Ownable, ReentrancyGuard {
         uint256 apxBurned;
         uint256 timestamp;
         string orderId;
-        bytes32 contactHash;        // Hash simple pour lien email
+        bytes32 contactHash;        // Simple hash for email link
         bool isProcessed;
     }
     
-    // Mapping des bénéfices
+    // Benefits mapping
     mapping(bytes32 => Benefit) public benefits;
     
-    // Mapping des rachats par utilisateur
+    // User redemptions mapping
     mapping(address => mapping(bytes32 => bool)) public userRedeemed;
     
-    // Historique des rachats
+    // Redemption history
     mapping(string => Redemption) public redemptions;
     
-    // Liste des bénéfices actifs
+    // Active benefits list
     bytes32[] public activeBenefitIds;
     
     // Events
@@ -76,11 +76,11 @@ contract BenefitsManagement is Ownable, ReentrancyGuard {
 }
 ```
 
-### Fonctions principales
+### Main Functions
 
 ```solidity
 /**
- * @dev Créer un nouveau bénéfice (admin only)
+ * @dev Create a new benefit (admin only)
  */
 function createBenefit(
     bytes32 benefitId,
@@ -94,45 +94,45 @@ function createBenefit(
 ) external onlyOwner
 
 /**
- * @dev Racheter un bénéfice (burn APX + générer Order ID)
+ * @dev Redeem a benefit (burn APX + generate Order ID)
  */
 function redeemBenefit(bytes32 benefitId) external nonReentrant returns (string memory orderId)
 
 /**
- * @dev Soumettre le hash de contact (appelé après collecte email)
+ * @dev Submit contact hash (called after email collection)
  */
 function submitContactHash(string memory orderId, bytes32 contactHash) external
 
 /**
- * @dev Marquer un rachat comme traité (admin only)
+ * @dev Mark a redemption as processed (admin only)
  */
 function markAsProcessed(string memory orderId) external onlyOwner
 ```
 
 ## 🎨 Frontend Integration
 
-### Types TypeScript
+### TypeScript Types
 
 ```typescript
-// Types pour les bénéfices
+// Types for benefits
 export interface Benefit {
   id: string
   title: string
-  description: string // Phrase de valeur
-  mechanics: string // Mécanique en 1 ligne
-  guardrails: string // Garde-fous et limites
-  tokenomics: string // Badge tokenomics
-  priceAPX: string // Prix formaté en APX
-  icon: string // Nom de l'icône Lucide
-  color: string // Couleur de la carte
+  description: string // Value proposition
+  mechanics: string // Mechanics in 1 line
+  guardrails: string // Guardrails and limits
+  tokenomics: string // Tokenomics badge
+  priceAPX: string // Price formatted in APX
+  icon: string // Lucide icon name
+  color: string // Card color
   isActive: boolean
   totalRedeemed: number
   maxRedemptions: number
-  canRedeem: boolean // Calculé côté client
-  isRedeemed: boolean // Si l'utilisateur l'a déjà acheté
+  canRedeem: boolean // Calculated client-side
+  isRedeemed: boolean // If user already purchased it
 }
 
-// Types pour les rachats
+// Types for redemptions
 export interface BenefitRedemption {
   orderId: string
   benefitId: string
@@ -144,7 +144,7 @@ export interface BenefitRedemption {
   contactSubmitted: boolean
 }
 
-// Types pour la collecte de contact
+// Types for contact collection
 export interface BenefitContact {
   orderId: string
   email: string
@@ -154,7 +154,7 @@ export interface BenefitContact {
 }
 ```
 
-### Bénéfices Prédéfinis
+### Predefined Benefits
 
 ```typescript
 export const PREDEFINED_BENEFITS = {
@@ -207,30 +207,30 @@ export const PREDEFINED_BENEFITS = {
     priceAPX: '500',
     icon: 'Gift',
     color: 'bg-gradient-to-r from-yellow-500 to-orange-500',
-    maxRedemptions: 0 // Illimité
+    maxRedemptions: 0 // Unlimited
   }
 } as const
 ```
 
-## 📱 Composants UI
+## 📱 UI Components
 
 ### BenefitCard Component
 
 ```typescript
 interface BenefitCardProps {
-  benefit: Benefit
-  onRedeem: (benefitId: string) => void
+benefit: Benefit
+onRedeem: (benefitId: string) => void
 }
 
 export function BenefitCard({ benefit, onRedeem }: BenefitCardProps) {
-  // Affichage avec:
-  // - Icône + couleur de fond
-  // - Titre + phrase de valeur
-  // - Mécanique en 1 ligne
-  // - Badge garde-fous
-  // - Badge tokenomics
-  // - Prix en APX
-  // - Bouton "Redeem" ou état (Redeemed, Unavailable)
+// Display with:
+// - Icon + background color
+// - Title + value proposition
+// - Mechanics in 1 line
+// - Guardrails badge
+// - Tokenomics badge
+// - Price in APX
+// - "Redeem" button or state (Redeemed, Unavailable)
 }
 ```
 
@@ -238,90 +238,90 @@ export function BenefitCard({ benefit, onRedeem }: BenefitCardProps) {
 
 ```typescript
 interface PostRedemptionModalProps {
-  orderId: string
-  benefitTitle: string
-  isOpen: boolean
-  onSubmit: (email: string) => void
-  onClose: () => void
+orderId: string
+benefitTitle: string
+isOpen: boolean
+onSubmit: (email: string) => void
+onClose: () => void
 }
 
 export function PostRedemptionModal({ orderId, benefitTitle, isOpen, onSubmit, onClose }: PostRedemptionModalProps) {
-  // Modal simple après achat avec:
-  // - Message de confirmation
-  // - Champ email
-  // - Texte explicatif du process manuel
-  // - Lien vers Terms
+// Simple modal after purchase with:
+// - Confirmation message
+// - Email field
+// - Explanatory text for manual process
+// - Link to Terms
 }
 ```
 
 ## 🔗 Integration Points
 
-### Hooks React
+### React Hooks
 
 ```typescript
-// Hook principal pour les bénéfices
+// Main hook for benefits
 export function useBenefitsManagement() {
-  const getAvailableBenefits = useCallback(async (): Promise<Benefit[]> => {}
-  const redeemBenefit = useCallback(async (benefitId: string): Promise<{ orderId: string; txHash: string }> => {}
-  const submitContactInfo = useCallback(async (orderId: string, email: string): Promise<void> => {}
-  const getUserRedemptions = useCallback(async (): Promise<BenefitRedemption[]> => {}
-  
-  return {
-    getAvailableBenefits,
-    redeemBenefit,
-    submitContactInfo,
-    getUserRedemptions,
-    isLoading,
-    error
-  }
+const getAvailableBenefits = useCallback(async (): Promise<Benefit[]> => {}
+const redeemBenefit = useCallback(async (benefitId: string): Promise<{ orderId: string; txHash: string }> => {}
+const submitContactInfo = useCallback(async (orderId: string, email: string): Promise<void> => {}
+const getUserRedemptions = useCallback(async (): Promise<BenefitRedemption[]> => {}
+
+return {
+getAvailableBenefits,
+redeemBenefit,
+submitContactInfo,
+getUserRedemptions,
+isLoading,
+error
+}
 }
 
-// Hook admin pour gestion
+// Admin hook for management
 export function useBenefitsAdmin() {
-  const createBenefit = useCallback(async (benefitData: CreateBenefitData) => {}
-  const getAllRedemptions = useCallback(async (): Promise<BenefitRedemption[]> => {}
-  const markAsProcessed = useCallback(async (orderId: string) => {}
-  const exportContacts = useCallback(async (): Promise<BenefitContact[]> => {}
+const createBenefit = useCallback(async (benefitData: CreateBenefitData) => {}
+const getAllRedemptions = useCallback(async (): Promise<BenefitRedemption[]> => {}
+const markAsProcessed = useCallback(async (orderId: string) => {}
+const exportContacts = useCallback(async (): Promise<BenefitContact[]> => {}
 }
 ```
 
-### Storage Local pour Contacts
+### Local Storage for Contacts
 
 ```typescript
-// Service de stockage des contacts
+// Contact storage service
 export class BenefitContactStorage {
-  private static readonly STORAGE_KEY = 'benefit_contacts'
-  
-  static save(contact: BenefitContact): void {
-    const contacts = this.getAll()
-    contacts.push(contact)
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(contacts))
-  }
-  
-  static getAll(): BenefitContact[] {
-    const stored = localStorage.getItem(this.STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  }
-  
-  static exportCSV(): string {
-    const contacts = this.getAll()
-    return convertToCSV(contacts)
-  }
+private static readonly STORAGE_KEY = 'benefit_contacts'
+
+static save(contact: BenefitContact): void {
+const contacts = this.getAll()
+contacts.push(contact)
+localStorage.setItem(this.STORAGE_KEY, JSON.stringify(contacts))
+}
+
+static getAll(): BenefitContact[] {
+const stored = localStorage.getItem(this.STORAGE_KEY)
+return stored ? JSON.parse(stored) : []
+}
+
+static exportCSV(): string {
+const contacts = this.getAll()
+return convertToCSV(contacts)
+}
 }
 ```
 
 ## 📊 Admin Interface
 
-### Tableau de bord admin
+### Admin dashboard
 
-- **Vue d'ensemble** : Total rachats, revenus APX burned, bénéfices actifs
-- **Liste des rachats** : OrderID, User, Bénéfice, Date, Status, Contact
-- **Export CSV** : Contacts pour process manuel
-- **Gestion bénéfices** : Activer/désactiver, modifier prix, créer nouveaux
+- **Overview**: Total redemptions, APX burned revenue, active benefits
+- **Redemption list**: OrderID, User, Benefit, Date, Status, Contact
+- **CSV Export**: Contacts for manual process
+- **Benefits management**: Enable/disable, modify price, create new ones
 
-## 🔧 Configuration et Déploiement
+## 🔧 Configuration and Deployment
 
-### Variables d'environnement
+### Environment variables
 
 ```env
 VITE_BENEFITS_CONTRACT_ADDRESS=0x...
@@ -329,38 +329,38 @@ VITE_PAYMASTER_URL=https://paymaster.base.org
 VITE_CONTACT_ENCRYPTION_KEY=...
 ```
 
-### Configuration du contract
+### Contract configuration
 
 ```typescript
 export const BENEFITS_MANAGEMENT_CONFIG = {
-  contractAddress: '0x...' as Address,
-  abi: BenefitsManagementABI,
-  adminWallet: '0xF35EeFB35B13d908497BF51Fbc3f0f798f9f93f4' as Address
+contractAddress: '0x...' as Address,
+abi: BenefitsManagementABI,
+adminWallet: '0xF35EeFB35B13d908497BF51Fbc3f0f798f9f93f4' as Address
 }
 ```
 
-## 🚀 Flow Utilisateur Complet
+## 🚀 Complete User Flow
 
-1. **Découverte** : Utilisateur visite section "My Benefits"
-2. **Sélection** : Choisit un bénéfice et lit les détails
-3. **Confirmation** : Modal avec conditions et prix APX
-4. **Transaction** : Burn APX + réception Order ID on-chain
-5. **Contact** : Formulaire simple pour email (post-transaction)
-6. **Confirmation** : Reçu on-chain + Order ID dans l'historique
-7. **Process** : Équipe contacte via email pour distribution
+1. **Discovery**: User visits "My Benefits" section
+2. **Selection**: Chooses a benefit and reads details
+3. **Confirmation**: Modal with conditions and APX price
+4. **Transaction**: Burn APX + receive Order ID on-chain
+5. **Contact**: Simple form for email (post-transaction)
+6. **Confirmation**: On-chain receipt + Order ID in history
+7. **Process**: Team contacts via email for distribution
 
 ## 📝 Next Steps
 
-1. Implémenter le Smart Contract BenefitsManagement
-2. Créer les hooks React et composants UI
-3. Intégrer avec Paymaster Coinbase pour gasless
-4. Tester le flow complet
-5. Déployer et configurer les bénéfices initiaux
+1. Implement the BenefitsManagement Smart Contract
+2. Create React hooks and UI components
+3. Integrate with Coinbase Paymaster for gasless
+4. Test the complete flow
+5. Deploy and configure initial benefits
 
-## 🔒 Sécurité et Conformité
+## 🔒 Security and Compliance
 
-- **Rate limiting** : 1 rachat par bénéfice par wallet
-- **Validation** : Vérification solde APX avant transaction
-- **Encryption** : Hash simple pour lien contact/rachat
-- **RGPD** : Stockage local + export CSV (pas de base centralisée)
-- **Audit** : Events on-chain pour traçabilité complète
+- **Rate limiting**: 1 redemption per benefit per wallet
+- **Validation**: APX balance verification before transaction
+- **Encryption**: Simple hash for contact/redemption link
+- **GDPR**: Local storage + CSV export (no centralized database)
+- **Audit**: On-chain events for complete traceability

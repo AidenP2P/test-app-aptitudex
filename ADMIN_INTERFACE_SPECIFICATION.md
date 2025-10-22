@@ -3,29 +3,29 @@
 
 ## Overview
 
-Cette spécification définit l'interface d'administration complète pour le système de Benefits, permettant aux administrateurs de gérer les bénéfices, suivre les commandes, exporter les contacts et monitorer le système.
+This specification defines the complete administration interface for the Benefits system, allowing administrators to manage benefits, track orders, export contacts, and monitor the system.
 
-## 🏗️ Architecture Admin
+## 🏗️ Admin Architecture
 
-### Contrôle d'Accès
+### Access Control
 
-L'accès admin est basé sur l'adresse wallet configurée dans [`APX_TOKEN_CONFIG.adminWallet`](src/config/apxToken.ts:6). L'interface s'intègre parfaitement avec la page Admin existante.
+Admin access is based on the wallet address configured in [`APX_TOKEN_CONFIG.adminWallet`](src/config/apxToken.ts:6). The interface integrates seamlessly with the existing Admin page.
 
 ```typescript
-// Extension de src/pages/Admin.tsx existant
+// Extension of existing src/pages/Admin.tsx
 import { BenefitsAdminSection } from '@/components/admin/BenefitsAdminSection'
 
-// Dans le composant Admin existant, ajouter :
+// In the existing Admin component, add:
 {isAPXOwner && (
   <BenefitsAdminSection />
 )}
 ```
 
-## 📊 Components Admin
+## 📊 Admin Components
 
-### 1. BenefitsAdminSection - Container Principal
+### 1. BenefitsAdminSection - Main Container
 
-Section principale à intégrer dans la page Admin existante.
+Main section to integrate into the existing Admin page.
 
 ```typescript
 // src/components/admin/BenefitsAdminSection.tsx
@@ -48,7 +48,7 @@ export function BenefitsAdminSection() {
   const [activeTab, setActiveTab] = useState('overview')
 
   if (!isAdmin) {
-    return null // Ne pas afficher si pas admin
+    return null // Do not display if not admin
   }
 
   return (
@@ -109,9 +109,9 @@ export function BenefitsAdminSection() {
 }
 ```
 
-### 2. BenefitsStats - Dashboard Statistiques
+### 2. BenefitsStats - Statistics Dashboard
 
-Dashboard avec métriques clés du système Benefits.
+Dashboard with key metrics of the Benefits system.
 
 ```typescript
 // src/components/admin/BenefitsStats.tsx
@@ -334,9 +334,9 @@ export function BenefitsStats() {
 }
 ```
 
-### 3. BenefitsManagement - Gestion des Bénéfices
+### 3. BenefitsManagement - Benefits Management
 
-Interface pour créer et modifier les bénéfices.
+Interface for creating and modifying benefits.
 
 ```typescript
 // src/components/admin/BenefitsManagement.tsx
@@ -419,7 +419,7 @@ export function BenefitsManagement() {
           isActive: true
         })
       } else {
-        // Générer un ID unique pour nouveau bénéfice
+        // Generate a unique ID for new benefit
         const benefitId = `0x${formData.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 31).padEnd(31, '0')}0`
         
         await createBenefit({
@@ -428,7 +428,7 @@ export function BenefitsManagement() {
         })
       }
       
-      // Reset form et reload
+      // Reset form and reload
       setFormData({
         id: '',
         title: '',
@@ -733,9 +733,9 @@ export function BenefitsManagement() {
 }
 ```
 
-### 4. OrdersManagement - Gestion des Commandes
+### 4. OrdersManagement - Order Management
 
-Interface pour voir et gérer toutes les commandes de bénéfices.
+Interface for viewing and managing all benefit orders.
 
 ```typescript
 // src/components/admin/OrdersManagement.tsx

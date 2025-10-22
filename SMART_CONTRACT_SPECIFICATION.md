@@ -2,11 +2,11 @@
 
 ## Contract Overview
 
-Le Smart Contract **BenefitsManagement** est le backend principal du système de Benefits. Il gère la création, l'achat et le suivi des bénéfices avec burn des tokens APX.
+The **BenefitsManagement** Smart Contract is the main backend of the Benefits system. It manages the creation, purchase, and tracking of benefits with APX token burning.
 
-## 🏗️ Architecture du Contract
+## 🏗️ Contract Architecture
 
-### Imports et Héritages
+### Imports and Inheritance
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -27,55 +27,55 @@ contract BenefitsManagement is Ownable, ReentrancyGuard {
 }
 ```
 
-### Structures de Données
+### Data Structures
 
 ```solidity
 struct Benefit {
-    uint256 priceAPX;           // Prix en APX tokens (en wei)
+    uint256 priceAPX;           // Price in APX tokens (in wei)
     string title;               // "1:1 with the Creator (Aiden P2P)"
-    string description;         // Phrase de valeur
-    string mechanics;           // Mécanique en 1 ligne
-    string guardrails;          // Garde-fous et limites
-    string tokenomics;          // Badge tokenomics ("100% burn", "gasless")
-    string iconName;            // Nom de l'icône Lucide React
-    string colorClass;          // Classe CSS pour la couleur
-    bool isActive;              // Bénéfice disponible
-    uint256 totalRedeemed;      // Nombre total de rachats
-    uint256 maxRedemptions;     // Limite globale (0 = illimité)
-    uint256 createdAt;          // Timestamp de création
+    string description;         // Value proposition
+    string mechanics;           // Mechanics in one line
+    string guardrails;          // Guardrails and limits
+    string tokenomics;          // Tokenomics badge ("100% burn", "gasless")
+    string iconName;            // Lucide React icon name
+    string colorClass;          // CSS color class
+    bool isActive;              // Benefit available
+    uint256 totalRedeemed;      // Total number of redemptions
+    uint256 maxRedemptions;     // Global limit (0 = unlimited)
+    uint256 createdAt;          // Creation timestamp
 }
 
 struct Redemption {
-    address user;               // Adresse de l'utilisateur
-    bytes32 benefitId;          // ID du bénéfice
-    uint256 apxBurned;          // Montant APX brûlé
-    uint256 timestamp;          // Date de rachat
-    string orderId;             // ID unique de commande
-    bytes32 contactHash;        // Hash pour lien email (optionnel)
-    bool isProcessed;           // Traité par l'équipe
-    bool contactSubmitted;      // Contact email soumis
+    address user;               // User address
+    bytes32 benefitId;          // Benefit ID
+    uint256 apxBurned;          // APX amount burned
+    uint256 timestamp;          // Redemption date
+    string orderId;             // Unique order ID
+    bytes32 contactHash;        // Hash for email link (optional)
+    bool isProcessed;           // Processed by team
+    bool contactSubmitted;      // Email contact submitted
 }
 ```
 
-### Mappings et Storage
+### Mappings and Storage
 
 ```solidity
-// Mapping des bénéfices par ID
+// Mapping of benefits by ID
 mapping(bytes32 => Benefit) public benefits;
 
-// Vérification si un utilisateur a déjà racheté un bénéfice
+// Check if a user has already redeemed a benefit
 mapping(address => mapping(bytes32 => bool)) public userRedeemed;
 
-// Historique des rachats par Order ID
+// Redemption history by Order ID
 mapping(string => Redemption) public redemptions;
 
-// Mapping pour récupérer les rachats par utilisateur
+// Mapping to retrieve redemptions by user
 mapping(address => string[]) public userOrderIds;
 
-// Liste des bénéfices actifs
+// List of active benefits
 bytes32[] public activeBenefitIds;
 
-// Statistiques globales
+// Global statistics
 uint256 public totalAPXBurned;
 uint256 public totalRedemptions;
 ```
@@ -124,23 +124,23 @@ event APXBurned(
 );
 ```
 
-## 🛠️ Fonctions Principales
+## 🛠️ Main Functions
 
 ### Admin Functions
 
 ```solidity
 /**
- * @dev Créer un nouveau bénéfice (admin only)
- * @param benefitId Identifiant unique du bénéfice
- * @param priceAPX Prix en tokens APX (en wei)
- * @param title Titre du bénéfice
- * @param description Description/phrase de valeur
- * @param mechanics Mécanique en une ligne
- * @param guardrails Garde-fous et limites
- * @param tokenomics Badge tokenomics
- * @param iconName Nom de l'icône Lucide
- * @param colorClass Classe CSS pour couleur
- * @param maxRedemptions Limite globale (0 = illimité)
+ * @dev Create a new benefit (admin only)
+ * @param benefitId Unique benefit identifier
+ * @param priceAPX Price in APX tokens (in wei)
+ * @param title Benefit title
+ * @param description Description/value proposition
+ * @param mechanics Mechanics in one line
+ * @param guardrails Guardrails and limits
+ * @param tokenomics Tokenomics badge
+ * @param iconName Lucide icon name
+ * @param colorClass CSS color class
+ * @param maxRedemptions Global limit (0 = unlimited)
  */
 function createBenefit(
     bytes32 benefitId,
@@ -179,7 +179,7 @@ function createBenefit(
 }
 
 /**
- * @dev Mettre à jour un bénéfice existant
+ * @dev Update an existing benefit
  */
 function updateBenefit(
     bytes32 benefitId,
@@ -200,7 +200,7 @@ function updateBenefit(
 }
 
 /**
- * @dev Marquer un rachat comme traité
+ * @dev Mark a redemption as processed
  */
 function markAsProcessed(string memory orderId) external onlyOwner {
     require(bytes(redemptions[orderId].orderId).length > 0, "Order does not exist");
@@ -216,14 +216,14 @@ function markAsProcessed(string memory orderId) external onlyOwner {
 
 ```solidity
 /**
- * @dev Racheter un bénéfice avec burn APX
- * @param benefitId ID du bénéfice à racheter
- * @return orderId ID unique de la commande
+ * @dev Redeem a benefit with APX burn
+ * @param benefitId ID of the benefit to redeem
+ * @return orderId Unique order ID
  */
-function redeemBenefit(bytes32 benefitId) 
-    external 
-    nonReentrant 
-    returns (string memory orderId) 
+function redeemBenefit(bytes32 benefitId)
+    external
+    nonReentrant
+    returns (string memory orderId)
 {
     Benefit storage benefit = benefits[benefitId];
     
@@ -232,23 +232,23 @@ function redeemBenefit(bytes32 benefitId)
     require(benefit.isActive, "Benefit is not active");
     require(!userRedeemed[msg.sender][benefitId], "Already redeemed by user");
     
-    // Vérifier limite globale
+    // Check global limit
     if (benefit.maxRedemptions > 0) {
         require(benefit.totalRedeemed < benefit.maxRedemptions, "Max redemptions reached");
     }
     
-    // Vérifier balance utilisateur
+    // Check user balance
     require(apxToken.balanceOf(msg.sender) >= benefit.priceAPX, "Insufficient APX balance");
     
-    // Générer Order ID unique
+    // Generate unique Order ID
     _orderCounter++;
     orderId = string(abi.encodePacked("BEN-", block.timestamp.toString(), "-", _orderCounter.toString()));
     
-    // Burn les tokens APX
+    // Burn APX tokens
     require(apxToken.transferFrom(msg.sender, address(this), benefit.priceAPX), "APX transfer failed");
     _burnAPX(benefit.priceAPX, string(abi.encodePacked("Benefit redeemed: ", orderId)));
     
-    // Enregistrer le rachat
+    // Record the redemption
     redemptions[orderId] = Redemption({
         user: msg.sender,
         benefitId: benefitId,
@@ -260,11 +260,11 @@ function redeemBenefit(bytes32 benefitId)
         contactSubmitted: false
     });
     
-    // Marquer comme racheté pour cet utilisateur
+    // Mark as redeemed for this user
     userRedeemed[msg.sender][benefitId] = true;
     userOrderIds[msg.sender].push(orderId);
     
-    // Mettre à jour les statistiques
+    // Update statistics
     benefit.totalRedeemed++;
     totalRedemptions++;
     totalAPXBurned += benefit.priceAPX;
@@ -275,9 +275,9 @@ function redeemBenefit(bytes32 benefitId)
 }
 
 /**
- * @dev Soumettre le hash de contact après rachat
- * @param orderId ID de la commande
- * @param contactHash Hash du contact email
+ * @dev Submit contact hash after redemption
+ * @param orderId Order ID
+ * @param contactHash Email contact hash
  */
 function submitContactHash(string memory orderId, bytes32 contactHash) external {
     Redemption storage redemption = redemptions[orderId];
@@ -297,7 +297,7 @@ function submitContactHash(string memory orderId, bytes32 contactHash) external 
 
 ```solidity
 /**
- * @dev Récupérer les détails d'un bénéfice
+ * @dev Get benefit details
  */
 function getBenefitDetails(bytes32 benefitId) 
     external 
@@ -333,7 +333,7 @@ function getBenefitDetails(bytes32 benefitId)
 }
 
 /**
- * @dev Vérifier si un utilisateur peut racheter un bénéfice
+ * @dev Check if a user can redeem a benefit
  */
 function canRedeemBenefit(address user, bytes32 benefitId) external view returns (bool) {
     Benefit storage benefit = benefits[benefitId];
@@ -347,19 +347,19 @@ function canRedeemBenefit(address user, bytes32 benefitId) external view returns
 }
 
 /**
- * @dev Récupérer tous les bénéfices actifs
+ * @dev Get all active benefits
  */
 function getActiveBenefits() external view returns (bytes32[] memory) {
     uint256 count = 0;
     
-    // Compter les bénéfices actifs
+    // Count active benefits
     for (uint256 i = 0; i < activeBenefitIds.length; i++) {
         if (benefits[activeBenefitIds[i]].isActive) {
             count++;
         }
     }
     
-    // Créer le tableau de résultats
+    // Create results array
     bytes32[] memory activeBenefits = new bytes32[](count);
     uint256 index = 0;
     
@@ -374,14 +374,14 @@ function getActiveBenefits() external view returns (bytes32[] memory) {
 }
 
 /**
- * @dev Récupérer les rachats d'un utilisateur
+ * @dev Get user redemptions
  */
 function getUserRedemptions(address user) external view returns (string[] memory) {
     return userOrderIds[user];
 }
 
 /**
- * @dev Récupérer les détails d'un rachat
+ * @dev Get redemption details
  */
 function getRedemptionDetails(string memory orderId) 
     external 
@@ -407,7 +407,7 @@ function getRedemptionDetails(string memory orderId)
 }
 
 /**
- * @dev Statistiques globales
+ * @dev Global statistics
  */
 function getGlobalStats() external view returns (
     uint256 totalBurned,
@@ -577,4 +577,4 @@ constructor(address _apxToken, address _owner) Ownable(_owner) {
 }
 ```
 
-Cette spécification complète définit l'architecture du Smart Contract BenefitsManagement avec toutes les fonctionnalités requises pour le système de Benefits.
+This complete specification defines the BenefitsManagement Smart Contract architecture with all required functionalities for the Benefits system.
