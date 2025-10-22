@@ -21,7 +21,8 @@ export interface Reward {
 
 export interface Activity {
   id: string;
-  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus' | 'send' | 'burn';
+  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus' | 'send' | 'burn' |
+        'benefit_redeem' | 'benefit_contact_submit' | 'benefit_process'; // Benefits types
   amount: string;
   date: string;
   tx?: string;
@@ -32,6 +33,15 @@ export interface Activity {
   frequency?: 'daily' | 'weekly'; // For new claim types
   fromAddress?: string; // For transfers
   toAddress?: string; // For transfers
+  
+  // New fields for Benefits
+  benefitId?: string;
+  benefitTitle?: string;
+  orderId?: string;
+  benefitIcon?: string;
+  benefitColor?: string;
+  contactSubmitted?: boolean;
+  isProcessed?: boolean;
 }
 
 // New interface for claim system
@@ -74,6 +84,16 @@ interface AppStore {
   // New claim system actions
   updateClaimData: (claimData: Partial<ClaimData>) => void;
   addClaimActivity: (type: 'daily_claim' | 'weekly_claim' | 'streak_bonus', amount: string, streakDay?: number) => void;
+  // Benefits actions
+  addBenefitActivity: (activity: Activity) => void;
+  updateBenefitActivity: (activityId: string, updates: Partial<Activity>) => void;
+  getBenefitActivities: () => Activity[];
+  getBenefitStats: () => {
+    totalRedemptions: number;
+    totalSpent: number;
+    contactsSubmitted: number;
+    processed: number;
+  };
   clearActivity: () => void;
   setActivity: (activities: Activity[]) => void;
 }
@@ -227,6 +247,42 @@ export const useAppStore = create<AppStore>((set) => ({
         ...state.activity,
       ],
     }))
+  },
+
+  // Benefits actions
+  addBenefitActivity: (activity: Activity) => {
+    set((state) => ({
+      activity: [activity, ...state.activity]
+    }))
+  },
+
+  updateBenefitActivity: (activityId: string, updates: Partial<Activity>) => {
+    set((state) => ({
+      activity: state.activity.map(a =>
+        a.id === activityId ? { ...a, ...updates } : a
+      )
+    }))
+  },
+
+  getBenefitActivities: () => {
+    const state = get()
+    const benefitTypes = ['benefit_redeem', 'benefit_contact_submit', 'benefit_process']
+    return state.activity.filter(a => benefitTypes.includes(a.type))
+  },
+
+  getBenefitStats: () => {
+    const state = get()
+    const redemptions = state.activity.filter(a => a.type === 'benefit_redeem')
+    const totalSpent = redemptions.reduce((sum, a) => sum + parseFloat(a.amount), 0)
+    const contactsSubmitted = state.activity.filter(a => a.contactSubmitted).length
+    const processed = state.activity.filter(a => a.isProcessed).length
+
+    return {
+      totalRedemptions: redemptions.length,
+      totalSpent,
+      contactsSubmitted,
+      processed
+    }
   },
 
   clearActivity: () => {
