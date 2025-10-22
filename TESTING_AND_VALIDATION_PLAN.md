@@ -136,7 +136,7 @@ describe('BenefitsManagement Contract', function() {
           'Test description',
           'Test mechanics',
           'Test guardrails',
-          '100% burn',
+          '',
           'Gift',
           'bg-purple-500',
           10

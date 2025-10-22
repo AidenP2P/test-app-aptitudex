@@ -386,7 +386,7 @@ export function BenefitsManagement() {
     description: '',
     mechanics: '',
     guardrails: '',
-    tokenomics: '100% burn',
+    tokenomics: '',
     priceAPX: '',
     iconName: 'Gift',
     colorClass: COLOR_OPTIONS[0].value,
@@ -435,7 +435,7 @@ export function BenefitsManagement() {
         description: '',
         mechanics: '',
         guardrails: '',
-        tokenomics: '100% burn',
+        tokenomics: '',
         priceAPX: '',
         iconName: 'Gift',
         colorClass: COLOR_OPTIONS[0].value,
@@ -568,7 +568,7 @@ export function BenefitsManagement() {
                     id="tokenomics"
                     value={formData.tokenomics}
                     onChange={(e) => setFormData(prev => ({ ...prev, tokenomics: e.target.value }))}
-                    placeholder="100% burn + gasless"
+                    placeholder="Tokenomics information"
                     required
                   />
                 </div>

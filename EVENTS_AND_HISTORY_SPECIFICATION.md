@@ -3,37 +3,37 @@
 
 ## Overview
 
-Cette spécification définit l'intégration des événements Benefits avec le système de transaction history existant, permettant de tracker et afficher l'historique complet des achats de bénéfices dans l'interface utilisateur.
+This specification defines the integration of Benefits events with the existing transaction history system, allowing tracking and displaying complete benefit purchase history in the user interface.
 
-## 🏗️ Architecture des Événements
+## 🏗️ Events Architecture
 
-### Integration avec le système existant
+### Integration with existing system
 
-Le système Benefits s'intègre avec [`useTransactionHistory`](src/hooks/useTransactionHistory.ts:1) existant en ajoutant de nouveaux types d'activités et en écoutant les événements du contract BenefitsManagement.
+The Benefits system integrates with existing [`useTransactionHistory`](src/hooks/useTransactionHistory.ts:1) by adding new activity types and listening to BenefitsManagement contract events.
 
-## 📋 Types d'Événements Benefits
+## 📋 Benefits Event Types
 
-### Extension des Types Activity
+### Activity Types Extension
 
 ```typescript
-// Extension de src/store/useAppStore.ts
+// Extension of src/store/useAppStore.ts
 export interface Activity {
   id: string;
-  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus' | 'send' | 'burn' | 
-        'benefit_redeem' | 'benefit_contact_submit' | 'benefit_process'; // Nouveaux types
+  type: 'claim' | 'earn' | 'issue' | 'daily_claim' | 'weekly_claim' | 'streak_bonus' | 'send' | 'burn' |
+        'benefit_redeem' | 'benefit_contact_submit' | 'benefit_process'; // New types
   amount: string;
   date: string;
   tx?: string;
   description?: string;
   
-  // Champs existants
+  // Existing fields
   streakDay?: number;
   isStreakBonus?: boolean;
   frequency?: 'daily' | 'weekly';
   fromAddress?: string;
   toAddress?: string;
   
-  // Nouveaux champs pour Benefits
+  // New fields for Benefits
   benefitId?: string;
   benefitTitle?: string;
   orderId?: string;
@@ -44,10 +44,10 @@ export interface Activity {
 }
 ```
 
-### Événements Smart Contract Benefits
+### Benefits Smart Contract Events
 
 ```typescript
-// Extension des événements à écouter
+// Extension of events to listen to
 export const BENEFITS_EVENTS = {
   BenefitRedeemed: {
     signature: 'BenefitRedeemed(address,bytes32,uint256,string,uint256)',
@@ -105,19 +105,19 @@ export const BENEFITS_EVENTS = {
 } as const
 ```
 
-## 🔄 Extension du Hook useTransactionHistory
+## 🔄 useTransactionHistory Hook Extension
 
-### Modification du hook existant
+### Existing hook modification
 
 ```typescript
-// Extension de src/hooks/useTransactionHistory.ts
+// Extension of src/hooks/useTransactionHistory.ts
 import { BENEFITS_MANAGEMENT_CONFIG } from '@/config/benefitsManagement'
 import { BENEFITS_EVENTS } from '@/config/benefitsEvents'
 
 export function useTransactionHistory() {
-  // ... code existant ...
+  // ... existing code ...
 
-  // Helper function pour déterminer le type de transaction Benefits
+  // Helper function to determine Benefits transaction type
   const getBenefitTransactionType = (eventName: string): Activity['type'] => {
     switch (eventName) {
       case 'BenefitRedeemed':
@@ -133,7 +133,7 @@ export function useTransactionHistory() {
     }
   }
 
-  // Extension de fetchTransactionHistory pour inclure les événements Benefits
+  // Extension of fetchTransactionHistory to include Benefits events
   const fetchTransactionHistory = async (fromBlock?: bigint) => {
     if (!address || !publicClient) return []
 
@@ -146,13 +146,13 @@ export function useTransactionHistory() {
 
       console.log(`📊 Fetching transaction history including Benefits from block ${startBlock} to ${currentBlock}`)
 
-      // 1. Événements APX Transfer existants (code existant)
-      // ... code existant pour transferLogs et receivedLogs ...
+      // 1. Existing APX Transfer events (existing code)
+      // ... existing code for transferLogs and receivedLogs ...
 
-      // 2. Événements Claims existants (code existant)
-      // ... code existant pour dailyClaimLogs et weeklyClaimLogs ...
+      // 2. Existing Claims events (existing code)
+      // ... existing code for dailyClaimLogs and weeklyClaimLogs ...
 
-      // 3. NOUVEAUX: Événements Benefits
+      // 3. NEW: Benefits events
       const benefitRedeemedLogs = await publicClient.getLogs({
         address: BENEFITS_MANAGEMENT_CONFIG.contractAddress,
         event: BENEFITS_EVENTS.BenefitRedeemed.abi,
@@ -184,7 +184,7 @@ export function useTransactionHistory() {
 
       const activities: Activity[] = []
 
-      // 4. Traitement des événements Benefits
+      // 4. Benefits events processing
       
       // Process Benefit Redeemed events
       for (const log of benefitRedeemedLogs) {
@@ -199,7 +199,7 @@ export function useTransactionHistory() {
             const { benefitId, apxBurned, orderId } = parsedLog.args
             const formattedAmount = formatAPXAmount(apxBurned)
             
-            // Récupérer les détails du bénéfice pour l'affichage
+            // Get benefit details for display
             const benefitDetails = await getBenefitDisplayInfo(benefitId)
 
             activities.push({
@@ -214,8 +214,8 @@ export function useTransactionHistory() {
               orderId: orderId,
               benefitIcon: benefitDetails.icon,
               benefitColor: benefitDetails.color,
-              contactSubmitted: false, // Sera mis à jour avec les événements contact
-              isProcessed: false // Sera mis à jour avec les événements processed
+              contactSubmitted: false, // Will be updated with contact events
+              isProcessed: false // Will be updated with processed events
             })
           }
         } catch (err) {
@@ -235,12 +235,12 @@ export function useTransactionHistory() {
           if (parsedLog?.eventName === 'ContactSubmitted') {
             const { orderId } = parsedLog.args
 
-            // Mettre à jour l'activité correspondante ou créer une nouvelle
+            // Update corresponding activity or create a new one
             const existingActivity = activities.find(a => a.orderId === orderId)
             if (existingActivity) {
               existingActivity.contactSubmitted = true
             } else {
-              // Créer une activité contact uniquement
+              // Create contact-only activity
               activities.push({
                 id: `benefit-contact-${log.transactionHash}-${log.logIndex}`,
                 type: 'benefit_contact_submit',
@@ -270,13 +270,13 @@ export function useTransactionHistory() {
           if (parsedLog?.eventName === 'BenefitProcessed') {
             const { orderId } = parsedLog.args
 
-            // Mettre à jour l'activité correspondante
+            // Update corresponding activity
             const existingActivity = activities.find(a => a.orderId === orderId)
             if (existingActivity) {
               existingActivity.isProcessed = true
               existingActivity.description = `${existingActivity.description} (Processed)`
             } else {
-              // Créer une activité processed uniquement
+              // Create processed-only activity
               activities.push({
                 id: `benefit-processed-${log.transactionHash}-${log.logIndex}`,
                 type: 'benefit_process',
@@ -294,9 +294,9 @@ export function useTransactionHistory() {
         }
       }
 
-      // ... processing des autres événements existants ...
+      // ... processing other existing events ...
 
-      // Trier toutes les activités par date (plus récent en premier)
+      // Sort all activities by date (most recent first)
       activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
       console.log(`📊 Processed ${activities.length} total activities including Benefits`)
@@ -313,10 +313,10 @@ export function useTransactionHistory() {
     }
   }
 
-  // Helper pour récupérer les infos d'affichage d'un bénéfice
+  // Helper to get benefit display info
   const getBenefitDisplayInfo = async (benefitId: string) => {
     try {
-      // Essayer d'abord avec les bénéfices prédéfinis
+      // Try first with predefined benefits
       const predefined = Object.values(PREDEFINED_BENEFITS).find(b => b.id === benefitId)
       if (predefined) {
         return {
@@ -326,7 +326,7 @@ export function useTransactionHistory() {
         }
       }
 
-      // Sinon, récupérer depuis le contract
+      // Otherwise, get from contract
       const details = await publicClient.readContract({
         address: BENEFITS_MANAGEMENT_CONFIG.contractAddress,
         abi: BENEFITS_MANAGEMENT_CONFIG.abi,
@@ -349,7 +349,7 @@ export function useTransactionHistory() {
     }
   }
 
-  // Le reste du hook reste identique...
+  // The rest of the hook remains identical...
   return {
     isLoading,
     error,
@@ -514,7 +514,7 @@ export function ActivityItem({ activity }: { activity: Activity }) {
 
 ### BenefitsHistorySection
 
-Composant spécialisé pour afficher l'historique des bénéfices.
+Specialized component for displaying benefits history.
 
 ```typescript
 // src/components/BenefitsHistorySection.tsx
@@ -533,7 +533,7 @@ export function BenefitsHistorySection() {
   const { activity } = useAppStore()
   const [filter, setFilter] = useState<BenefitActivityFilter>('all')
 
-  // Filtrer les activités Benefits
+  // Filter Benefits activities
   const benefitActivities = useMemo(() => {
     const benefitTypes = ['benefit_redeem', 'benefit_contact_submit', 'benefit_process']
     let filtered = activity.filter(a => benefitTypes.includes(a.type))
@@ -652,16 +652,16 @@ export function BenefitsHistorySection() {
 }
 ```
 
-## 🔄 Integration avec l'App Store
+## 🔄 Integration with App Store
 
-### Extension du Store
+### Store Extension
 
 ```typescript
 // Extension de src/store/useAppStore.ts
 interface AppStore {
-  // ... propriétés existantes ...
+  // ... existing properties ...
   
-  // Nouvelles actions pour Benefits
+  // New actions for Benefits
   addBenefitActivity: (activity: Activity) => void
   updateBenefitActivity: (activityId: string, updates: Partial<Activity>) => void
   getBenefitActivities: () => Activity[]
@@ -673,9 +673,9 @@ interface AppStore {
   }
 }
 
-// Dans l'implémentation du store
+// In the store implementation
 export const useAppStore = create<AppStore>((set, get) => ({
-  // ... état existant ...
+  // ... existing state ...
 
   addBenefitActivity: (activity: Activity) => {
     set((state) => ({
@@ -714,17 +714,17 @@ export const useAppStore = create<AppStore>((set, get) => ({
 }))
 ```
 
-## 📱 Integration dans les Pages
+## 📱 Integration in Pages
 
-### Extension de la page Activity
+### Activity Page Extension
 
 ```typescript
-// Extension de src/pages/Activity.tsx
+// Extension of src/pages/Activity.tsx
 import { BenefitsHistorySection } from '@/components/BenefitsHistorySection'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const Activity = () => {
-  // ... code existant ...
+  // ... existing code ...
 
   return (
     <>
@@ -739,11 +739,11 @@ const Activity = () => {
           </TabsList>
           
           <TabsContent value="all" className="space-y-4">
-            {/* Contenu existant - toutes les activités */}
+            {/* Existing content - all activities */}
           </TabsContent>
           
           <TabsContent value="rewards" className="space-y-4">
-            {/* Contenu existant - activités rewards uniquement */}
+            {/* Existing content - rewards activities only */}
           </TabsContent>
           
           <TabsContent value="benefits" className="space-y-4">
@@ -756,13 +756,13 @@ const Activity = () => {
 }
 ```
 
-### Extension de la page Rewards
+### Rewards Page Extension
 
 ```typescript
-// Extension de src/pages/Rewards.tsx - ajout d'une section historique
+// Extension of src/pages/Rewards.tsx - adding a history section
 import { BenefitsHistorySection } from '@/components/BenefitsHistorySection'
 
-// Dans le composant Rewards, après la section My Benefits
+// In the Rewards component, after the My Benefits section
 {isConnected && (
   <div className="mt-8">
     <BenefitsHistorySection />
@@ -772,7 +772,7 @@ import { BenefitsHistorySection } from '@/components/BenefitsHistorySection'
 
 ## 🔄 Real-time Updates
 
-### WebSocket ou Polling pour mises à jour temps réel
+### WebSocket or Polling for real-time updates
 
 ```typescript
 // src/hooks/useBenefitsRealtime.ts
@@ -785,7 +785,7 @@ export function useBenefitsRealtime() {
   const { addBenefitActivity } = useAppStore()
 
   useEffect(() => {
-    // Polling toutes les 30 secondes pour les nouvelles transactions
+    // Polling every 30 seconds for new transactions
     const interval = setInterval(() => {
       fetchNewTransactions()
     }, 30000)
@@ -793,16 +793,16 @@ export function useBenefitsRealtime() {
     return () => clearInterval(interval)
   }, [fetchNewTransactions])
 
-  // Écouter les événements de transaction confirmée
+  // Listen to confirmed transaction events
   useEffect(() => {
     const handleTransactionConfirmed = (event: CustomEvent) => {
       const { type, txHash, orderId } = event.detail
       
       if (type === 'benefit_redeem') {
-        // Mettre à jour l'activité avec l'Order ID
+        // Update activity with Order ID
         setTimeout(() => {
           fetchNewTransactions()
-        }, 5000) // Attendre 5s pour que la transaction soit indexée
+        }, 5000) // Wait 5s for transaction to be indexed
       }
     }
 
@@ -812,15 +812,15 @@ export function useBenefitsRealtime() {
 }
 ```
 
-## 📊 Analytics et Métriques
+## 📊 Analytics and Metrics
 
-### Service d'Analytics Benefits
+### Benefits Analytics Service
 
 ```typescript
 // src/services/benefitsAnalytics.ts
 export class BenefitsAnalytics {
   static trackBenefitRedemption(benefitId: string, amount: string, orderId: string) {
-    // Analytics pour redemption
+    // Analytics for redemption
     if (typeof gtag !== 'undefined') {
       gtag('event', 'benefit_redeem', {
         benefit_id: benefitId,
@@ -831,7 +831,7 @@ export class BenefitsAnalytics {
   }
 
   static trackContactSubmission(orderId: string) {
-    // Analytics pour soumission contact
+    // Analytics for contact submission
     if (typeof gtag !== 'undefined') {
       gtag('event', 'benefit_contact_submit', {
         order_id: orderId

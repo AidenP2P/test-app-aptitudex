@@ -36,7 +36,7 @@ struct Benefit {
     string description;         // Value proposition
     string mechanics;           // Mechanics in one line
     string guardrails;          // Guardrails and limits
-    string tokenomics;          // Tokenomics badge ("100% burn", "gasless")
+    string tokenomics;          // Tokenomics badge ("", "gasless")
     string iconName;            // Lucide React icon name
     string colorClass;          // CSS color class
     bool isActive;              // Benefit available
@@ -216,7 +216,7 @@ function markAsProcessed(string memory orderId) external onlyOwner {
 
 ```solidity
 /**
- * @dev Redeem a benefit with APX burn
+ * @dev Redeem a benefit
  * @param benefitId ID of the benefit to redeem
  * @return orderId Unique order ID
  */
@@ -463,7 +463,7 @@ function initializePredefinedBenefits() external onlyOwner {
         "A 30–45 min private session to discuss product, token design, Base integration, or GTM.",
         "Redeem with APX → on-chain receipt → booking link sent.",
         "Limit: 1 per wallet, expires in 30 days",
-        "100% burn",
+        "",
         "UserCheck",
         "bg-gradient-to-r from-purple-500 to-pink-500",
         10
@@ -477,7 +477,7 @@ function initializePredefinedBenefits() external onlyOwner {
         "Priority access to the next product release.",
         "Redeem with APX → allowlist your wallet for Beta features.",
         "Limit: 1 per wallet, permanent access",
-        "100% burn + gasless",
+        "",
         "Zap",
         "bg-gradient-to-r from-blue-500 to-cyan-500",
         100
@@ -491,7 +491,7 @@ function initializePredefinedBenefits() external onlyOwner {
         "A 10 USDC credit delivered to your wallet.",
         "Redeem with APX → on-chain event → USDC payout (server-fulfilled) within 24–48h.",
         "Limit: 1 per wallet, payout within 48h",
-        "100% burn + gasless",
+        "",
         "DollarSign",
         "bg-gradient-to-r from-green-500 to-emerald-500",
         50
@@ -505,7 +505,7 @@ function initializePredefinedBenefits() external onlyOwner {
         "Entry into a raffle for 100 USDC.",
         "Redeem with APX → on-chain entry logged; transparent draw (tx hash / VRF if added).",
         "Limit: 1 per wallet, draw monthly",
-        "100% burn + gasless",
+        "",
         "Gift",
         "bg-gradient-to-r from-yellow-500 to-orange-500",
         0 // Illimité

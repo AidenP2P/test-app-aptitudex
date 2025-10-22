@@ -78,9 +78,6 @@ export function BenefitCard({
                 <Badge variant="secondary" className="text-xs bg-white/10 text-white/90 border-white/20">
                   {benefit.guardrails}
                 </Badge>
-                <Badge variant="outline" className="text-xs bg-white/5 text-white/80 border-white/30">
-                  {benefit.tokenomics}
-                </Badge>
               </div>
             </div>
 

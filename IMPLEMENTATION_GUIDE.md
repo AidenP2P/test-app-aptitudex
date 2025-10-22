@@ -16,7 +16,7 @@ The Benefits system is now **fully developed** and ready for deployment. Here's 
 ### ✅ Tokenomics Mentions Cleaned Up
 
 - Removed all "100% burn" and "gasless" mentions
-- Replaced with simple "APX burn"
+- Replaced with clean tokenomics field
 - More streamlined and professional interface
 
 ### ✅ Admin Interface Improvement
@@ -53,7 +53,7 @@ The Benefits system is now **fully developed** and ready for deployment. Here's 
 
 ### For Users
 1. **Visualization**: List of 4 benefits with price, description, mechanics
-2. **Redemption**: "Redeem" click → APX burn → Order ID generation
+2. **Redemption**: "Redeem" click → APX tokens burned → Order ID generation
 3. **Contact**: Post-purchase modal to collect email
 4. **History**: Redemption tracking in activity
 5. **Guardrails**: 1 redemption per benefit per wallet
@@ -73,7 +73,7 @@ graph TD
     B --> C[Sees 4 benefits sorted by price]
     C --> D[Clicks Redeem on a benefit]
     D --> E[Transaction confirmation]
-    E --> F[APX burned + Order ID generated]
+    E --> F[APX tokens burned + Order ID generated]
     F --> G[Post-redemption contact modal]
     G --> H[User enters email]
     H --> I[Contact stored locally]
@@ -130,7 +130,7 @@ npm run dev
 ### Key Metrics
 - **Total Benefits**: 4 active benefits
 - **Total Redemptions**: Number of redemptions
-- **APX Burned**: Tokens permanently destroyed
+- **APX Tokens Burned**: Tokens permanently destroyed
 - **Contacts**: Emails collected for manual process
 
 ### Admin Exports

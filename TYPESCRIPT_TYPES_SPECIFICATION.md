@@ -16,7 +16,7 @@ export interface Benefit {
   description: string           // Phrase de valeur (pourquoi c'est utile)
   mechanics: string             // Mécanique en 1 ligne (comment on le débloque)
   guardrails: string            // Garde-fous (limites, cap par wallet, délai)
-  tokenomics: string            // Badge tokenomics (ex. "100% burn", "gasless")
+  tokenomics: string            // Badge tokenomics (ex. "", "gasless")
   priceAPX: string              // Prix formaté en APX (ex: "5000")
   iconName: string              // Nom de l'icône Lucide React
   colorClass: string            // Classes CSS pour la couleur
@@ -271,7 +271,7 @@ export const PREDEFINED_BENEFITS = {
     description: 'A 30–45 min private session to discuss product, token design, Base integration, or GTM.',
     mechanics: 'Redeem with APX → on-chain receipt → booking link sent.',
     guardrails: 'Limit: 1 per wallet, expires in 30 days',
-    tokenomics: '100% burn',
+    tokenomics: '',
     priceAPX: '5000',
     iconName: 'UserCheck',
     colorClass: 'bg-gradient-to-r from-purple-500 to-pink-500',
@@ -285,7 +285,7 @@ export const PREDEFINED_BENEFITS = {
     description: 'Priority access to the next product release.',
     mechanics: 'Redeem with APX → allowlist your wallet for Beta features.',
     guardrails: 'Limit: 1 per wallet, permanent access',
-    tokenomics: '100% burn + gasless',
+    tokenomics: '',
     priceAPX: '1000',
     iconName: 'Zap',
     colorClass: 'bg-gradient-to-r from-blue-500 to-cyan-500',
@@ -299,7 +299,7 @@ export const PREDEFINED_BENEFITS = {
     description: 'A 10 USDC credit delivered to your wallet.',
     mechanics: 'Redeem with APX → on-chain event → USDC payout (server-fulfilled) within 24–48h.',
     guardrails: 'Limit: 1 per wallet, payout within 48h',
-    tokenomics: '100% burn + gasless',
+    tokenomics: '',
     priceAPX: '2000',
     iconName: 'DollarSign',
     colorClass: 'bg-gradient-to-r from-green-500 to-emerald-500',
@@ -313,7 +313,7 @@ export const PREDEFINED_BENEFITS = {
     description: 'Entry into a raffle for 100 USDC.',
     mechanics: 'Redeem with APX → on-chain entry logged; transparent draw (tx hash / VRF if added).',
     guardrails: 'Limit: 1 per wallet, draw monthly',
-    tokenomics: '100% burn + gasless',
+    tokenomics: '',
     priceAPX: '500',
     iconName: 'Gift',
     colorClass: 'bg-gradient-to-r from-yellow-500 to-orange-500',
