@@ -3,24 +3,24 @@
 
 ## Overview
 
-Cette spécification définit tous les composants UI nécessaires pour le système de Benefits, en s'appuyant sur le design system existant et les composants Shadcn/UI déjà présents dans le projet.
+This specification defines all necessary UI components for the Benefits system, leveraging the existing design system and Shadcn/UI components already present in the project.
 
 ## 🏗️ Component Architecture
 
 ### Design System Integration
 
-Le système de Benefits s'intègre parfaitement avec l'architecture UI existante :
-- **Base** : Shadcn/UI components (Button, Card, Dialog, Badge, etc.)
-- **Styling** : Tailwind CSS avec classes personnalisées
-- **Icons** : Lucide React
-- **Layout** : Responsive design mobile-first
-- **Theme** : Support du dark/light mode
+The Benefits system integrates seamlessly with the existing UI architecture:
+- **Base**: Shadcn/UI components (Button, Card, Dialog, Badge, etc.)
+- **Styling**: Tailwind CSS with custom classes
+- **Icons**: Lucide React
+- **Layout**: Mobile-first responsive design
+- **Theme**: Dark/light mode support
 
 ## 📱 Core Components
 
 ### 1. BenefitCard Component
 
-Composant principal pour afficher un bénéfice individuel dans la liste.
+Primary component to display an individual benefit in the list.
 
 ```typescript
 // src/components/BenefitCard.tsx
@@ -188,7 +188,7 @@ export function BenefitCard({
 
 ### 2. BenefitsList Component
 
-Container pour afficher tous les bénéfices avec filtres et tri.
+Container for displaying all benefits with filters and sorting.
 
 ```typescript
 // src/components/BenefitsList.tsx
@@ -348,7 +348,7 @@ export function BenefitsList({
 
 ### 3. PostRedemptionModal Component
 
-Modal pour collecter l'email après un rachat réussi.
+Modal for collecting email after a successful redemption.
 
 ```typescript
 // src/components/PostRedemptionModal.tsx
@@ -517,7 +517,7 @@ export function PostRedemptionModal({
 
 ### 4. RedemptionHistoryItem Component
 
-Composant pour afficher un historique de rachat dans la liste.
+Component to display a redemption history item in the list.
 
 ```typescript
 // src/components/RedemptionHistoryItem.tsx
@@ -669,7 +669,7 @@ export function RedemptionHistoryItem({
 
             {/* Additional Info */}
             {redemption.status === 'pending_contact' && (
-              <div className="mt-3 p-2 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-900">
+              <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded-lg dark:bg-orange-950/20 dark:border-orange-900">
                 <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
                   <Clock className="w-4 h-4" />
                   <span className="text-xs">
@@ -688,7 +688,7 @@ export function RedemptionHistoryItem({
 
 ### 5. BenefitsSection Integration
 
-Composant principal à intégrer dans la page Rewards existante.
+Main component to integrate into the existing Rewards page.
 
 ```typescript
 // src/components/BenefitsSection.tsx

@@ -3,30 +3,30 @@
 
 ## Overview
 
-Ce plan définit la stratégie complète de test et de validation pour le système de Benefits, couvrant tous les composants depuis le Smart Contract jusqu'à l'interface utilisateur, en passant par l'intégration Paymaster et la gestion admin.
+This plan defines the complete testing and validation strategy for the Benefits system, covering all components from the Smart Contract to the User Interface, including Paymaster integration and admin management.
 
-## 🎯 Objectifs de Test
+## 🎯 Test Objectives
 
-### Critères de Succès
-1. **Fonctionnalité** : Tous les flows utilisateur fonctionnent correctement
-2. **Sécurité** : Pas de vulnérabilités dans les smart contracts ou la logique métier
-3. **Performance** : Temps de réponse acceptables et UI fluide
-4. **Intégration** : Tous les systèmes communiquent correctement
-5. **UX** : Experience utilisateur intuitive et sans friction
+### Success Criteria
+1. **Functionality**: All user flows work correctly
+2. **Security**: No vulnerabilities in smart contracts or business logic
+3. **Performance**: Acceptable response times and fluid UI
+4. **Integration**: All systems communicate correctly
+5. **UX**: Intuitive and frictionless user experience
 
-## 🏗️ Architecture de Test
+## 🏗️ Test Architecture
 
-### Environnements de Test
+### Test Environments
 
 ```typescript
-// Configuration des environnements
+// Environment configuration
 export const TEST_ENVIRONMENTS = {
   // 1. Local Development
   LOCAL: {
     chainId: 31337, // Hardhat local
     rpcUrl: 'http://localhost:8545',
-    benefitsContract: '0x...', // Contract déployé localement
-    paymaster: 'mock', // Mock Paymaster pour tests
+    benefitsContract: '0x...', // Contract deployed locally
+    paymaster: 'mock', // Mock Paymaster for tests
     apxToken: '0x...', // Mock APX Token
   },
   
@@ -34,8 +34,8 @@ export const TEST_ENVIRONMENTS = {
   TESTNET: {
     chainId: 84532, // Base Sepolia
     rpcUrl: 'https://sepolia.base.org',
-    benefitsContract: '0x...', // Contract déployé sur testnet
-    paymaster: 'https://paymaster.base.org/v1', // Vrai Paymaster
+    benefitsContract: '0x...', // Contract deployed on testnet
+    paymaster: 'https://paymaster.base.org/v1', // Real Paymaster
     apxToken: '0x...', // APX Token testnet
   },
   
@@ -43,14 +43,14 @@ export const TEST_ENVIRONMENTS = {
   STAGING: {
     chainId: 8453, // Base mainnet
     rpcUrl: 'https://mainnet.base.org',
-    benefitsContract: '0x...', // Contract staging
+    benefitsContract: '0x...', // Staging contract
     paymaster: 'https://paymaster.base.org/v1',
-    apxToken: '0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3', // Vrai APX
+    apxToken: '0x1A51cC117Ab0f4881Db1260C9344C479D0893dD3', // Real APX
   }
 } as const
 ```
 
-### Configuration Jest
+### Jest Configuration
 
 ```typescript
 // jest.config.ts
@@ -88,7 +88,7 @@ export default config
 
 ## 🔧 Smart Contract Testing
 
-### Suite de Tests Hardhat
+### Hardhat Test Suite
 
 ```typescript
 // contracts/test/BenefitsManagement.test.ts
@@ -331,7 +331,7 @@ describe('BenefitsManagement Contract', function() {
 })
 ```
 
-### Tests de Sécurité
+### Security Tests
 
 ```typescript
 // contracts/test/BenefitsManagement.security.test.ts
@@ -339,25 +339,25 @@ describe('BenefitsManagement Security Tests', function() {
   
   describe('Reentrancy Protection', function() {
     it('Should prevent reentrancy attacks on redeemBenefit', async function() {
-      // Test avec un contract malicieux qui tente la reentrancy
+      // Test with a malicious contract attempting reentrancy
     })
   })
 
   describe('Access Control', function() {
     it('Should prevent unauthorized admin functions', async function() {
-      // Test tous les fonctions onlyOwner
+      // Test all onlyOwner functions
     })
   })
 
   describe('Integer Overflow/Underflow', function() {
     it('Should handle large numbers safely', async function() {
-      // Test avec des montants extrêmes
+      // Test with extreme amounts
     })
   })
 
   describe('Front-running Protection', function() {
     it('Should handle concurrent redemptions gracefully', async function() {
-      // Test de redemptions simultanées
+      // Test simultaneous redemptions
     })
   })
 })
@@ -365,7 +365,7 @@ describe('BenefitsManagement Security Tests', function() {
 
 ## ⚛️ Frontend Component Testing
 
-### Tests des Hooks
+### Hooks Tests
 
 ```typescript
 // src/hooks/__tests__/useBenefitsManagement.test.ts
@@ -411,7 +411,7 @@ describe('useBenefitsManagement', () => {
 })
 ```
 
-### Tests des Composants UI
+### UI Component Tests
 
 ```typescript
 // src/components/__tests__/BenefitCard.test.tsx
@@ -478,7 +478,7 @@ describe('BenefitCard', () => {
 })
 ```
 
-### Tests d'Intégration Frontend
+### Frontend Integration Tests
 
 ```typescript
 // src/pages/__tests__/Rewards.integration.test.tsx
@@ -517,9 +517,9 @@ describe('Rewards Page Integration', () => {
 })
 ```
 
-## 🔗 Tests d'Intégration
+## 🔗 Integration Tests
 
-### Tests Paymaster
+### Paymaster Tests
 
 ```typescript
 // src/services/__tests__/paymasterService.test.ts
@@ -563,7 +563,7 @@ describe('PaymasterService', () => {
 })
 ```
 
-### Tests de Stockage Local
+### Local Storage Tests
 
 ```typescript
 // src/hooks/__tests__/useBenefitsContactStorage.test.ts
@@ -618,9 +618,9 @@ describe('useBenefitsContactStorage', () => {
 })
 ```
 
-## 🎭 Tests End-to-End
+## 🎭 End-to-End Tests
 
-### Configuration Playwright
+### Playwright Configuration
 
 ```typescript
 // playwright.config.ts
@@ -659,7 +659,7 @@ export default defineConfig({
 })
 ```
 
-### Tests E2E Complets
+### Complete E2E Tests
 
 ```typescript
 // e2e/benefits-flow.spec.ts
@@ -742,9 +742,9 @@ test.describe('Admin Flow', () => {
 })
 ```
 
-## 📊 Tests de Performance
+## 📊 Performance Tests
 
-### Tests de Charge
+### Load Tests
 
 ```typescript
 // performance/load-test.ts
@@ -776,7 +776,7 @@ export default function() {
 }
 ```
 
-### Tests de Métrique Gas
+### Gas Metric Tests
 
 ```typescript
 // performance/gas-analysis.ts
@@ -823,12 +823,12 @@ async function analyzeGasCosts() {
 }
 ```
 
-## 🔍 Tests de Sécurité Avancés
+## 🔍 Advanced Security Tests
 
-### Audit de Sécurité Automatisé
+### Automated Security Audit
 
 ```bash
-# Script d'audit automatisé
+# Automated audit script
 #!/bin/bash
 
 echo "🔍 Running Security Audit..."
@@ -856,45 +856,45 @@ eslint src/ --ext .ts,.tsx --config .eslintrc.security.js
 echo "✅ Security audit complete"
 ```
 
-### Tests de Vulnérabilités
+### Vulnerability Tests
 
 ```typescript
 // security/vulnerability-tests.ts
 describe('Security Vulnerability Tests', () => {
   
   test('SQL Injection Protection', () => {
-    // Test inputs malicieux dans les APIs
+    // Test malicious inputs in APIs
   })
   
   test('XSS Protection', () => {
-    // Test scripts malicieux dans les inputs utilisateur
+    // Test malicious scripts in user inputs
   })
   
   test('CSRF Protection', () => {
-    // Test requests cross-origin malicieuses
+    // Test malicious cross-origin requests
   })
   
   test('Input Validation', () => {
-    // Test tous les inputs avec des données malformées
+    // Test all inputs with malformed data
   })
 })
 ```
 
-## 📋 Plan d'Exécution des Tests
+## 📋 Test Execution Plan
 
-### Phase 1: Tests Unitaires (Semaine 1)
+### Phase 1: Unit Tests (Week 1)
 - ✅ Smart Contract tests
 - ✅ Hooks tests  
 - ✅ Components tests
 - ✅ Utilities tests
 
-### Phase 2: Tests d'Intégration (Semaine 2)
+### Phase 2: Integration Tests (Week 2)
 - ✅ Contract + Frontend integration
 - ✅ Paymaster integration
 - ✅ Storage integration
 - ✅ Event handling integration
 
-### Phase 3: Tests E2E (Semaine 3)
+### Phase 3: E2E Tests (Week 3)
 - ✅ Complete user flows
 - ✅ Admin flows
 - ✅ Error scenarios

@@ -2,37 +2,37 @@
 
 ## Overview
 
-Cette spécification définit tous les types TypeScript nécessaires pour l'intégration frontend du système de Benefits, incluant les interfaces, types, utilitaires et configurations.
+This specification defines all necessary TypeScript types for the frontend integration of the Benefits system, including interfaces, types, utilities, and configurations.
 
 ## 🏗️ Core Types
 
 ### Benefit Interface
 
 ```typescript
-// Interface principale pour un bénéfice
+// Main interface for a benefit
 export interface Benefit {
-  id: string                    // bytes32 converti en string hex
+  id: string                    // bytes32 converted to hex string
   title: string                 // "1:1 with the Creator (Aiden P2P)"
-  description: string           // Phrase de valeur (pourquoi c'est utile)
-  mechanics: string             // Mécanique en 1 ligne (comment on le débloque)
-  guardrails: string            // Garde-fous (limites, cap par wallet, délai)
-  tokenomics: string            // Badge tokenomics (ex. "", "gasless")
-  priceAPX: string              // Prix formaté en APX (ex: "5000")
-  iconName: string              // Nom de l'icône Lucide React
-  colorClass: string            // Classes CSS pour la couleur
-  isActive: boolean             // Bénéfice disponible pour achat
-  totalRedeemed: number         // Nombre total de rachats
-  maxRedemptions: number        // Limite globale (0 = illimité)
-  createdAt: Date               // Date de création
+  description: string           // Value proposition (why it's useful)
+  mechanics: string             // 1-line mechanics (how to unlock it)
+  guardrails: string            // Guardrails (limits, per wallet cap, deadline)
+  tokenomics: string            // Tokenomics badge (e.g., "", "gasless")
+  priceAPX: string              // Price formatted in APX (e.g: "5000")
+  iconName: string              // Lucide React icon name
+  colorClass: string            // CSS classes for color
+  isActive: boolean             // Benefit available for purchase
+  totalRedeemed: number         // Total number of redemptions
+  maxRedemptions: number        // Global limit (0 = unlimited)
+  createdAt: Date               // Date of creation
   
-  // États calculés côté frontend
-  canRedeem: boolean            // Calculé : utilisateur peut-il racheter ?
-  isRedeemed: boolean           // Utilisateur a-t-il déjà racheté ?
-  isAvailable: boolean          // Bénéfice disponible (limite non atteinte)
-  remainingSlots?: number       // Slots restants si limite définie
+  // Calculated states on the frontend
+  canRedeem: boolean            // Calculated: can the user redeem?
+  isRedeemed: boolean           // Has the user already redeemed?
+  isAvailable: boolean          // Benefit available (limit not reached)
+  remainingSlots?: number       // Remaining slots if limit is set
 }
 
-// Type pour la création d'un bénéfice (admin)
+// Type for creating a benefit (admin)
 export interface CreateBenefitData {
   id: string
   title: string
@@ -46,7 +46,7 @@ export interface CreateBenefitData {
   maxRedemptions: number
 }
 
-// Type pour la mise à jour d'un bénéfice
+// Type for updating a benefit
 export interface UpdateBenefitData {
   id: string
   priceAPX?: string
@@ -59,33 +59,33 @@ export interface UpdateBenefitData {
 ### Redemption Interface
 
 ```typescript
-// Interface pour un rachat de bénéfice
+// Interface for a benefit redemption
 export interface BenefitRedemption {
-  orderId: string               // ID unique de commande (BEN-timestamp-counter)
-  benefitId: string             // ID du bénéfice racheté
-  benefitTitle: string          // Titre du bénéfice (pour affichage)
-  user: string                  // Adresse wallet de l'utilisateur
-  apxBurned: string             // Montant APX brûlé (formaté)
-  timestamp: Date               // Date de rachat
-  txHash: string                // Hash de la transaction
-  isProcessed: boolean          // Traité par l'équipe
-  contactSubmitted: boolean     // Contact email soumis
-  contactHash?: string          // Hash du contact (si soumis)
+  orderId: string               // Unique order ID (BEN-timestamp-counter)
+  benefitId: string             // ID of the redeemed benefit
+  benefitTitle: string          // Benefit title (for display)
+  user: string                  // Wallet address of the user
+  apxBurned: string             // Amount of APX burned (formatted)
+  timestamp: Date               // Date of redemption
+  txHash: string                // Transaction hash
+  isProcessed: boolean          // Processed by the team
+  contactSubmitted: boolean     // Contact email submitted
+  contactHash?: string          // Contact hash (if submitted)
   
-  // États calculés
-  status: RedemptionStatus      // Statut calculé
+  // Calculated states
+  status: RedemptionStatus      // Calculated status
   timeAgo: string               // "2 hours ago", "1 day ago"
 }
 
-// Statuts possibles d'un rachat
+// Possible statuses for a redemption
 export type RedemptionStatus = 
-  | 'pending_contact'   // En attente de soumission du contact
-  | 'pending_process'   // Contact soumis, en attente de traitement
-  | 'processing'        // En cours de traitement par l'équipe
-  | 'fulfilled'         // Traité et livré
-  | 'expired'           // Expiré (si applicable)
+  | 'pending_contact'   // Awaiting contact submission
+  | 'pending_process'   // Contact submitted, awaiting team processing
+  | 'processing'        // Currently being processed by the team
+  | 'fulfilled'         // Processed and delivered
+  | 'expired'           // Expired (if applicable)
 
-// Données de contact pour un rachat
+// Contact data for a redemption
 export interface BenefitContact {
   orderId: string
   email: string
@@ -93,7 +93,7 @@ export interface BenefitContact {
   benefitId: string
   timestamp: Date
   status: ContactStatus
-  notes?: string                // Notes optionnelles
+  notes?: string                // Optional notes
 }
 
 export type ContactStatus = 'submitted' | 'processing' | 'fulfilled'
@@ -102,20 +102,20 @@ export type ContactStatus = 'submitted' | 'processing' | 'fulfilled'
 ### Transaction Types
 
 ```typescript
-// Interface pour les transactions liées aux bénéfices
+// Interface for benefit-related transactions
 export interface BenefitTransaction {
   id: string
   type: 'benefit_redeem' | 'benefit_burn'
   orderId: string
   benefitId: string
   benefitTitle: string
-  amount: string                // APX brûlé
+  amount: string                // APX burned
   date: string                  // ISO date
   tx: string                    // Transaction hash
   description: string
   status: 'pending' | 'confirmed' | 'failed'
   
-  // Données spécifiques aux bénéfices
+  // Benefit-specific data
   benefitIcon?: string
   benefitColor?: string
 }
@@ -126,7 +126,7 @@ export interface BenefitTransaction {
 ### Contract Configuration
 
 ```typescript
-// Configuration du Smart Contract BenefitsManagement
+// Configuration for the BenefitsManagement Smart Contract
 export interface BenefitsManagementConfig {
   contractAddress: Address
   abi: readonly unknown[]
@@ -134,7 +134,7 @@ export interface BenefitsManagementConfig {
   chainId: number
 }
 
-// ABI spécialisée avec types stricts
+// Specialized ABI with strict types
 export const BenefitsManagementABI = [
   // Read functions
   {
@@ -246,7 +246,7 @@ export const BenefitsManagementABI = [
 ### Predefined Benefits
 
 ```typescript
-// Types pour les bénéfices prédéfinis
+// Types for predefined benefits
 export interface PredefinedBenefit {
   id: string
   title: string
@@ -263,7 +263,7 @@ export interface PredefinedBenefit {
 
 export type BenefitCategory = 'premium' | 'access' | 'reward' | 'contest'
 
-// Configuration des bénéfices prédéfinis
+// Predefined benefits configuration
 export const PREDEFINED_BENEFITS = {
   CREATOR_1ON1: {
     id: '0x316f6e31000000000000000000000000000000000000000000000000000000',
@@ -330,7 +330,7 @@ export type PredefinedBenefitKey = keyof typeof PREDEFINED_BENEFITS
 ### Component Props
 
 ```typescript
-// Props pour BenefitCard
+// Props for BenefitCard
 export interface BenefitCardProps {
   benefit: Benefit
   onRedeem: (benefitId: string) => Promise<void>
@@ -339,7 +339,7 @@ export interface BenefitCardProps {
   className?: string
 }
 
-// Props pour BenefitModal (détails)
+// Props for BenefitModal (details)
 export interface BenefitModalProps {
   benefit: Benefit | null
   isOpen: boolean
@@ -348,7 +348,7 @@ export interface BenefitModalProps {
   isRedeeming?: boolean
 }
 
-// Props pour PostRedemptionModal (collecte email)
+// Props for PostRedemptionModal (email collection)
 export interface PostRedemptionModalProps {
   orderId: string
   benefitTitle: string
@@ -358,7 +358,7 @@ export interface PostRedemptionModalProps {
   isSubmitting?: boolean
 }
 
-// Props pour RedemptionHistoryItem
+// Props for RedemptionHistoryItem
 export interface RedemptionHistoryItemProps {
   redemption: BenefitRedemption
   onViewDetails?: (redemption: BenefitRedemption) => void
@@ -366,7 +366,7 @@ export interface RedemptionHistoryItemProps {
   showContactAction?: boolean
 }
 
-// Props pour BenefitsList
+// Props for BenefitsList
 export interface BenefitsListProps {
   benefits: Benefit[]
   isLoading?: boolean
@@ -380,7 +380,7 @@ export interface BenefitsListProps {
 ### State Management Types
 
 ```typescript
-// State pour le store Benefits
+// State for the Benefits store
 export interface BenefitsState {
   benefits: Benefit[]
   userRedemptions: BenefitRedemption[]
@@ -388,12 +388,12 @@ export interface BenefitsState {
   isLoading: boolean
   error: string | null
   
-  // Cache et optimisations
+  // Cache and optimizations
   lastFetched: Date | null
   cachedBalanceAPX: string
 }
 
-// Actions pour le store Benefits
+// Actions for the Benefits store
 export interface BenefitsActions {
   // Data fetching
   fetchBenefits: () => Promise<void>
@@ -411,7 +411,7 @@ export interface BenefitsActions {
   setLoading: (loading: boolean) => void
 }
 
-// Store complet
+// Complete Store
 export interface BenefitsStore extends BenefitsState, BenefitsActions {}
 ```
 
@@ -420,7 +420,7 @@ export interface BenefitsStore extends BenefitsState, BenefitsActions {}
 ### Helper Types
 
 ```typescript
-// Résultat d'une opération de rachat
+// Result of a benefit redemption operation
 export interface RedeemResult {
   success: boolean
   orderId?: string
@@ -428,13 +428,13 @@ export interface RedeemResult {
   error?: string
 }
 
-// Résultat de soumission de contact
+// Contact submission result
 export interface ContactSubmitResult {
   success: boolean
   error?: string
 }
 
-// Statistiques pour l'admin
+// Statistics for admin
 export interface BenefitsStats {
   totalBenefits: number
   activeBenefits: number
@@ -447,7 +447,7 @@ export interface BenefitsStats {
   recentActivity: BenefitRedemption[]
 }
 
-// Filtre pour les bénéfices
+// Filter for benefits
 export interface BenefitsFilter {
   category?: BenefitCategory
   priceRange?: {
@@ -458,7 +458,7 @@ export interface BenefitsFilter {
   userCanRedeem?: boolean
 }
 
-// Options de tri
+// Sort options
 export type BenefitsSortOption = 
   | 'price_asc'
   | 'price_desc'
@@ -470,7 +470,7 @@ export type BenefitsSortOption =
 ### Contract Interaction Types
 
 ```typescript
-// Paramètres pour les appels contract
+// Parameters for contract calls
 export interface ContractCallParams {
   address: Address
   abi: readonly unknown[]
@@ -479,7 +479,7 @@ export interface ContractCallParams {
   account?: Address
 }
 
-// Résultat d'appel contract
+// Contract call result
 export interface ContractCallResult<T = unknown> {
   data: T
   isLoading: boolean
@@ -497,19 +497,19 @@ export interface UseBenefitsConfig {
 
 ## 🔗 Integration Types
 
-### API Types (pour contact storage)
+### API Types (for contact storage)
 
 ```typescript
-// Request pour stocker un contact
+// Request to store a contact
 export interface StoreContactRequest {
   orderId: string
   email: string
   benefitId: string
   walletAddress: string
-  signature?: string  // Optionnel pour vérification
+  signature?: string  // Optional for verification
 }
 
-// Response de l'API
+// API Response
 export interface APIResponse<T = unknown> {
   success: boolean
   data?: T
@@ -517,7 +517,7 @@ export interface APIResponse<T = unknown> {
   timestamp: string
 }
 
-// Contact export pour admin
+// Contact export for admin
 export interface ContactExport {
   orderId: string
   email: string
@@ -533,7 +533,7 @@ export interface ContactExport {
 ### Paymaster Integration
 
 ```typescript
-// Configuration Paymaster Coinbase
+// Coinbase Paymaster Configuration
 export interface PaymasterConfig {
   url: string
   apiKey?: string
@@ -541,7 +541,7 @@ export interface PaymasterConfig {
   gasPolicy?: 'user_pays' | 'sponsor_pays' | 'hybrid'
 }
 
-// Transaction avec Paymaster
+// Transaction with Paymaster
 export interface PaymasterTransaction {
   to: Address
   data: `0x${string}`
@@ -552,10 +552,10 @@ export interface PaymasterTransaction {
 }
 ```
 
-## 📊 Export des Types Principaux
+## 📊 Export of Main Types
 
 ```typescript
-// Export principal pour utilisation dans l'app
+// Main export for application use
 export type {
   // Core types
   Benefit,
@@ -592,11 +592,11 @@ export type {
   PaymasterConfig
 }
 
-// Export des constantes
+// Export constants
 export {
   PREDEFINED_BENEFITS,
   BenefitsManagementABI
 }
 ```
 
-Cette spécification TypeScript complète fournit tous les types nécessaires pour une intégration robuste et type-safe du système de Benefits dans le frontend React.
+This comprehensive TypeScript specification provides all necessary types for robust and type-safe integration of the Benefits system into the React frontend.

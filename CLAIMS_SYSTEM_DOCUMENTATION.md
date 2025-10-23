@@ -164,23 +164,23 @@ The Claims interface is integrated directly into the home page:
 
 ### useClaimSystem()
 
-Hook principal pour gérer les claims :
+Main hook for managing claims:
 
 ```typescript
 const {
-  userData,           // Données utilisateur
-  availability,       // Disponibilité des claims
-  isLoading,         // État de chargement
-  claimDaily,        // Fonction claim daily
-  claimWeekly,       // Fonction claim weekly
-  isAdmin,           // Status admin
-  refresh            // Recharger les données
+  userData,           // User data
+  availability,       // Claim availability
+  isLoading,         // Loading state
+  claimDaily,        // claim daily function
+  claimWeekly,       // claim weekly function
+  isAdmin,           // Admin status
+  refresh            // Reload data
 } = useClaimSystem()
 ```
 
 ### useClaimData()
 
-Hook optimisé pour l'affichage uniquement :
+Optimized hook for display only:
 
 ```typescript
 const {
@@ -322,7 +322,7 @@ contract APXClaimSystem {
 
 ---
 
-## 💡 Support
+## 📞 Support
 
 ### FAQ
 

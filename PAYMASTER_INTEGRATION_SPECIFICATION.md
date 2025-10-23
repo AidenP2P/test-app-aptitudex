@@ -2,54 +2,54 @@
 
 ## Overview
 
-Cette spécification définit l'intégration du système Benefits avec le Paymaster Coinbase pour permettre des transactions gasless. L'objectif est d'offrir une expérience utilisateur fluide où les utilisateurs n'ont pas besoin de payer de gas pour racheter leurs bénéfices.
+This specification defines the integration of the Benefits system with the Coinbase Paymaster to enable gasless transactions. The goal is to provide a seamless user experience where users do not need to pay gas to redeem their benefits.
 
-## 🏗️ Architecture Paymaster
+## 🏗️ Paymaster Architecture
 
-### Configuration Coinbase Smart Wallet
+### Coinbase Smart Wallet Configuration
 
-Le projet utilise déjà OnchainKit et Coinbase Smart Wallet. Nous devons étendre cette intégration pour supporter les transactions gasless pour les Benefits.
+The project already uses OnchainKit and Coinbase Smart Wallet. We need to extend this integration to support gasless transactions for Benefits.
 
 ```typescript
-// src/config/paymaster.ts - Extension de la configuration existante
+// src/config/paymaster.ts - Extension of existing configuration
 import { type Address } from 'viem'
 import { base } from 'viem/chains'
 
 export const PAYMASTER_CONFIG = {
-  // Coinbase Paymaster pour Base
+  // Coinbase Paymaster for Base
   paymasterUrl: 'https://paymaster.base.org/v1',
   
-  // Politique de sponsoring pour Benefits
+  // Sponsoring policy for Benefits
   sponsoringPolicy: {
-    // Transactions éligibles pour sponsoring
+    // Transactions eligible for sponsoring
     eligibleContracts: [
       '0x...', // BenefitsManagement contract address
     ],
     
-    // Fonctions éligibles pour sponsoring
+    // Functions eligible for sponsoring
     eligibleFunctions: [
       'redeemBenefit',
       'submitContactHash'
     ],
     
-    // Limites de sponsoring
-    maxGasLimit: 500000, // 500k gas max par transaction
-    dailyLimitPerUser: 3, // 3 transactions sponsorisées par jour par utilisateur
+    // Sponsoring limits
+    maxGasLimit: 500000, // 500k gas max per transaction
+    dailyLimitPerUser: 3, // 3 sponsored transactions per user per day
     
-    // Conditions d'éligibilité
-    minimumAPXBalance: '100', // Utilisateur doit avoir au moins 100 APX
-    whitelistedBenefits: [], // Liste des bénéfices éligibles (vide = tous)
+    // Eligibility conditions
+    minimumAPXBalance: '100', // User must have at least 100 APX
+    whitelistedBenefits: [], // List of eligible benefits (empty = all)
   },
   
-  // Configuration de fallback
-  fallbackToUserPaysGas: true, // Si le sponsoring échoue, l'utilisateur paie
+  // Fallback configuration
+  fallbackToUserPaysGas: true, // If sponsoring fails, the user pays gas
   
-  // Monitoring et analytics
+  // Monitoring and analytics
   enableAnalytics: true,
   analyticsEndpoint: '/api/paymaster/analytics'
 } as const
 
-// Types pour la configuration Paymaster
+// Types for Paymaster configuration
 export interface PaymasterSponsoringRequest {
   to: Address
   data: `0x${string}`
@@ -68,10 +68,10 @@ export interface PaymasterSponsoringResponse {
   reason?: string
 }
 
-// Utilitaires pour vérifier l'éligibilité
+// Utilities for checking eligibility
 export class PaymasterUtils {
   /**
-   * Vérifier si une transaction est éligible pour le sponsoring
+   * Check if a transaction is eligible for sponsoring
    */
   static isEligibleForSponsoring(
     contractAddress: Address,
@@ -79,17 +79,17 @@ export class PaymasterUtils {
     userAddress: Address,
     userAPXBalance: string
   ): boolean {
-    // Vérifier le contrat
+    // Check contract
     if (!PAYMASTER_CONFIG.sponsoringPolicy.eligibleContracts.includes(contractAddress)) {
       return false
     }
     
-    // Vérifier la fonction
+    // Check function
     if (!PAYMASTER_CONFIG.sponsoringPolicy.eligibleFunctions.includes(functionName)) {
       return false
     }
     
-    // Vérifier le balance minimum
+    // Check minimum balance
     const balanceNum = parseFloat(userAPXBalance)
     const minBalance = parseFloat(PAYMASTER_CONFIG.sponsoringPolicy.minimumAPXBalance)
     if (balanceNum < minBalance) {
@@ -100,7 +100,7 @@ export class PaymasterUtils {
   }
   
   /**
-   * Construire la requête de sponsoring
+   * Build the sponsoring request
    */
   static buildSponsoringRequest(
     to: Address,
@@ -121,7 +121,7 @@ export class PaymasterUtils {
 }
 ```
 
-### Service Paymaster
+### Paymaster Service
 
 ```typescript
 // src/services/paymasterService.ts
@@ -135,7 +135,7 @@ import {
 } from '@/config/paymaster'
 
 /**
- * Service pour gérer les interactions avec le Paymaster Coinbase
+ * Service to manage interactions with the Coinbase Paymaster
  */
 export class PaymasterService {
   private static instance: PaymasterService
@@ -154,18 +154,18 @@ export class PaymasterService {
   }
 
   /**
-   * Demander le sponsoring d'une transaction
+   * Request sponsoring for a transaction
    */
   async requestSponsoring(request: PaymasterSponsoringRequest): Promise<PaymasterSponsoringResponse> {
     try {
       console.log('🎫 Requesting transaction sponsoring:', request)
       
-      // Vérifier l'éligibilité
+      // Check eligibility
       const isEligible = PaymasterUtils.isEligibleForSponsoring(
         request.to,
         request.contractFunction,
         request.userAddress,
-        '0' // TODO: Récupérer le vrai balance
+        '0' // TODO: Fetch real balance
       )
       
       if (!isEligible) {
@@ -175,7 +175,7 @@ export class PaymasterService {
         }
       }
       
-      // Vérifier les limites quotidiennes
+      // Check daily limits
       const dailyCount = await this.getDailyTransactionCount(request.userAddress)
       if (dailyCount >= PAYMASTER_CONFIG.sponsoringPolicy.dailyLimitPerUser) {
         return {
@@ -184,10 +184,10 @@ export class PaymasterService {
         }
       }
       
-      // Appel à l'API Coinbase Paymaster
+      // Call Coinbase Paymaster API
       const response = await this.callCoinbasePaymaster(request)
       
-      // Enregistrer l'analytics
+      // Record analytics
       if (PAYMASTER_CONFIG.enableAnalytics) {
         await this.recordAnalytics(request, response)
       }
@@ -209,7 +209,7 @@ export class PaymasterService {
   }
 
   /**
-   * Appel à l'API Coinbase Paymaster
+   * Call the Coinbase Paymaster API
    */
   private async callCoinbasePaymaster(request: PaymasterSponsoringRequest): Promise<PaymasterSponsoringResponse> {
     const response = await fetch(PAYMASTER_CONFIG.paymasterUrl, {
@@ -222,7 +222,7 @@ export class PaymasterService {
         method: 'pm_sponsorUserOperation',
         params: [{
           sender: request.userAddress,
-          nonce: '0x0', // Sera calculé dynamiquement
+          nonce: '0x0', // Will be calculated dynamically
           initCode: '0x',
           callData: request.data,
           callGasLimit: `0x${request.gasLimit?.toString(16)}`,
@@ -258,7 +258,7 @@ export class PaymasterService {
   }
 
   /**
-   * Récupérer le nombre de transactions sponsorisées aujourd'hui pour un utilisateur
+   * Get the number of sponsored transactions today for a user
    */
   private async getDailyTransactionCount(userAddress: Address): Promise<number> {
     const today = new Date().toISOString().split('T')[0]
@@ -267,7 +267,7 @@ export class PaymasterService {
   }
 
   /**
-   * Enregistrer les analytics de sponsoring
+   * Record sponsoring analytics
    */
   private async recordAnalytics(
     request: PaymasterSponsoringRequest, 
@@ -276,11 +276,11 @@ export class PaymasterService {
     const today = new Date().toISOString().split('T')[0]
     const key = `${request.userAddress}_${today}`
     
-    // Incrémenter le compteur quotidien
+    // Increment daily counter
     const currentCount = this.analyticsData.get(key) || 0
     this.analyticsData.set(key, currentCount + 1)
     
-    // Envoyer à l'endpoint analytics si configuré
+    // Send to analytics endpoint if configured
     if (PAYMASTER_CONFIG.analyticsEndpoint) {
       try {
         await fetch(PAYMASTER_CONFIG.analyticsEndpoint, {
@@ -303,7 +303,7 @@ export class PaymasterService {
   }
 
   /**
-   * Estimer le gas pour une transaction Benefits
+   * Estimate gas for a Benefits transaction
    */
   async estimateGasForBenefit(
     contractAddress: Address,
@@ -314,25 +314,25 @@ export class PaymasterService {
     try {
       const gasEstimate = await this.publicClient.estimateContractGas({
         address: contractAddress,
-        abi: [], // TODO: Ajouter l'ABI appropriée
+        abi: [], // TODO: Add appropriate ABI
         functionName,
         args,
         account: userAddress
       })
       
-      // Ajouter 20% de marge de sécurité
+      // Add 20% safety margin
       return gasEstimate + (gasEstimate * 20n / 100n)
       
     } catch (error) {
       console.error('Gas estimation failed:', error)
-      // Fallback vers une estimation conservatrice
+      // Fallback to a conservative estimate
       return BigInt(PAYMASTER_CONFIG.sponsoringPolicy.maxGasLimit)
     }
   }
 }
 ```
 
-### Hook usePaymaster
+### usePaymaster Hook
 
 ```typescript
 // src/hooks/usePaymaster.ts
@@ -345,7 +345,7 @@ import { PaymasterService, PAYMASTER_CONFIG, PaymasterUtils } from '@/services/p
 import { useAPXToken } from './useAPXToken'
 
 /**
- * Hook pour gérer les transactions gasless avec Paymaster
+ * Hook to manage gasless transactions with Paymaster
  */
 export function usePaymaster() {
   const { address, isConnected } = useAccount()
@@ -359,7 +359,7 @@ export function usePaymaster() {
   const paymasterService = publicClient ? PaymasterService.getInstance(publicClient) : null
 
   /**
-   * Vérifier si une transaction peut être sponsorisée
+   * Check if a transaction can be sponsored
    */
   const canSponsorTransaction = useCallback((
     contractAddress: Address,
@@ -376,7 +376,7 @@ export function usePaymaster() {
   }, [address, isConnected, formattedBalance])
 
   /**
-   * Exécuter une transaction avec sponsoring Paymaster
+   * Execute a transaction with Paymaster sponsoring
    */
   const executeWithSponsoring = useCallback(async (
     contractAddress: Address,
@@ -392,7 +392,7 @@ export function usePaymaster() {
     setSponsoringError(null)
 
     try {
-      // Vérifier l'éligibilité
+      // Check eligibility
       const canSponsor = canSponsorTransaction(contractAddress, functionName)
       
       if (!canSponsor) {
@@ -400,11 +400,11 @@ export function usePaymaster() {
           description: 'This transaction is not eligible for gasless execution'
         })
         
-        // Fallback vers transaction normale
+        // Fallback to regular transaction
         return await executeRegularTransaction(contractAddress, functionName, args, abi)
       }
 
-      // Estimer le gas
+      // Estimate gas
       const gasEstimate = await paymasterService.estimateGasForBenefit(
         contractAddress,
         functionName,
@@ -412,14 +412,14 @@ export function usePaymaster() {
         address
       )
 
-      // Encoder les données de transaction
+      // Encode transaction data
       const data = encodeFunctionData({
         abi,
         functionName,
         args
       })
 
-      // Demander le sponsoring
+      // Request sponsoring
       const sponsoringRequest = PaymasterUtils.buildSponsoringRequest(
         contractAddress,
         data,
@@ -443,7 +443,7 @@ export function usePaymaster() {
         }
       }
 
-      // Exécuter la transaction sponsorisée
+      // Execute sponsored transaction
       toast.success('Transaction sponsored!', {
         description: 'This transaction is gasless for you'
       })
@@ -480,7 +480,7 @@ export function usePaymaster() {
   }, [address, walletClient, paymasterService, canSponsorTransaction])
 
   /**
-   * Exécuter une transaction normale (avec gas payé par l'utilisateur)
+   * Execute a regular transaction (gas paid by user)
    */
   const executeRegularTransaction = useCallback(async (
     contractAddress: Address,
@@ -513,24 +513,24 @@ export function usePaymaster() {
   }, [walletClient, address])
 
   /**
-   * Exécuter une User Operation (ERC-4337)
+   * Execute a User Operation (ERC-4337)
    */
   const executeUserOperation = useCallback(async (userOp: any): Promise<string> => {
-    // Cette fonction dépend de l'implémentation ERC-4337 de Coinbase
-    // Pour l'instant, on utilise un placeholder
+    // This function depends on the Coinbase Smart Wallet ERC-4337 implementation
+    // For now, using a placeholder
     
-    // TODO: Implémenter avec la SDK Coinbase Smart Wallet
+    // TODO: Implement with Coinbase Smart Wallet SDK
     throw new Error('User Operation execution not yet implemented')
   }, [])
 
   /**
-   * Obtenir les statistiques de sponsoring pour l'utilisateur
+   * Get sponsoring stats for the user
    */
   const getSponsoringStats = useCallback(async () => {
     if (!address) return null
 
     try {
-      // TODO: Récupérer depuis l'API analytics
+      // TODO: Fetch from analytics API
       return {
         dailyTransactions: 0,
         dailyLimit: PAYMASTER_CONFIG.sponsoringPolicy.dailyLimitPerUser,
@@ -544,12 +544,12 @@ export function usePaymaster() {
   }, [address])
 
   return {
-    // ===== ÉTATS =====
+    // ===== STATES =====
     isSponsoring,
     sponsoringError,
     isConnected,
     
-    // ===== FONCTIONS =====
+    // ===== FUNCTIONS =====
     canSponsorTransaction,
     executeWithSponsoring,
     executeRegularTransaction,
@@ -559,13 +559,13 @@ export function usePaymaster() {
     sponsoringPolicy: PAYMASTER_CONFIG.sponsoringPolicy,
     fallbackEnabled: PAYMASTER_CONFIG.fallbackToUserPaysGas,
     
-    // ===== UTILITAIRES =====
+    // ===== UTILITIES =====
     clearError: () => setSponsoringError(null)
   }
 }
 ```
 
-### Intégration avec les Benefits
+### Integration with Benefits
 
 ```typescript
 // src/hooks/useBenefitsWithPaymaster.ts
@@ -576,14 +576,14 @@ import { useBenefitsManagement } from './useBenefitsManagement'
 import { usePaymaster } from './usePaymaster'
 
 /**
- * Hook combiné Benefits + Paymaster pour transactions gasless
+ * Combined Benefits + Paymaster hook for gasless transactions
  */
 export function useBenefitsWithPaymaster() {
   const {
     getAvailableBenefits,
     getUserRedemptions,
     submitContactInfo,
-    // ... autres fonctions du hook Benefits
+    // ... other functions from useBenefitsManagement
   } = useBenefitsManagement()
   
   const {
@@ -593,11 +593,11 @@ export function useBenefitsWithPaymaster() {
   } = usePaymaster()
 
   /**
-   * Racheter un bénéfice avec tentative de sponsoring gasless
+   * Redeem a benefit with attempted gasless sponsoring
    */
   const redeemBenefitGasless = useCallback(async (benefitId: string) => {
     try {
-      // Vérifier si le sponsoring est possible
+      // Check if sponsoring is possible
       const canSponsor = canSponsorTransaction(
         BENEFITS_MANAGEMENT_CONFIG.contractAddress,
         'redeemBenefit'
@@ -609,7 +609,7 @@ export function useBenefitsWithPaymaster() {
         })
       }
 
-      // Exécuter avec sponsoring
+      // Execute with sponsoring
       const result = await executeWithSponsoring(
         BENEFITS_MANAGEMENT_CONFIG.contractAddress,
         'redeemBenefit',
@@ -621,7 +621,7 @@ export function useBenefitsWithPaymaster() {
         toast.success('Benefit redeemed successfully!', {
           description: canSponsor ? 'Transaction was gasless!' : 'Transaction confirmed'
         })
-        return { success: true, txHash: result.txHash, orderId: 'TBD' } // orderId sera extrait des events
+        return { success: true, txHash: result.txHash, orderId: 'TBD' } // orderId will be extracted from events
       } else {
         throw new Error(result.error || 'Redemption failed')
       }
@@ -634,14 +634,14 @@ export function useBenefitsWithPaymaster() {
   }, [executeWithSponsoring, canSponsorTransaction])
 
   /**
-   * Soumettre contact avec sponsoring gasless
+   * Submit contact with gasless sponsoring
    */
   const submitContactGasless = useCallback(async (orderId: string, email: string) => {
     try {
-      // Générer le hash de contact
+      // Generate contact hash
       const contactHash = generateContactHash(email, orderId)
 
-      // Tenter le sponsoring
+      // Attempt sponsoring
       const result = await executeWithSponsoring(
         BENEFITS_MANAGEMENT_CONFIG.contractAddress,
         'submitContactHash',
@@ -650,7 +650,7 @@ export function useBenefitsWithPaymaster() {
       )
 
       if (result.success) {
-        // Stocker aussi localement
+        // Also store locally
         await submitContactInfo(orderId, email)
         
         toast.success('Contact submitted successfully!')
@@ -662,7 +662,7 @@ export function useBenefitsWithPaymaster() {
     } catch (error) {
       console.error('Gasless contact submission failed:', error)
       
-      // Fallback vers stockage local uniquement
+      // Fallback to local storage only
       try {
         await submitContactInfo(orderId, email)
         toast.success('Contact saved locally', {
@@ -677,28 +677,28 @@ export function useBenefitsWithPaymaster() {
   }, [executeWithSponsoring, submitContactInfo])
 
   return {
-    // ===== FONCTIONS BENEFITS AVEC PAYMASTER =====
+    // ===== BENEFITS FUNCTIONS WITH PAYMASTER =====
     redeemBenefitGasless,
     submitContactGasless,
     
-    // ===== FONCTIONS BENEFITS ORIGINALES =====
+    // ===== ORIGINAL BENEFITS FUNCTIONS =====
     getAvailableBenefits,
     getUserRedemptions,
     
-    // ===== ÉTATS PAYMASTER =====
+    // ===== PAYMASTER STATES =====
     isSponsoring,
     canSponsorTransaction,
     
-    // ===== UTILITAIRES =====
+    // ===== UTILITIES =====
     isGaslessAvailable: (functionName: string) => 
       canSponsorTransaction(BENEFITS_MANAGEMENT_CONFIG.contractAddress, functionName)
   }
 }
 ```
 
-## 🔧 Configuration Frontend
+## 🔧 Frontend Configuration
 
-### Variables d'environnement
+### Environment Variables
 
 ```env
 # Paymaster Configuration
@@ -715,7 +715,7 @@ VITE_PAYMASTER_MIN_APX_BALANCE=100
 VITE_PAYMASTER_DEBUG=true
 ```
 
-### Intégration OnchainKit
+### OnchainKit Integration
 
 ```typescript
 // src/providers/Web3Provider.tsx - Extension
@@ -724,12 +724,12 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PAYMASTER_CONFIG } from '@/config/paymaster'
 
-// Configuration étendue pour supporter Paymaster
+// Extended configuration to support Paymaster
 const onchainKitConfig = {
   apiKey: process.env.VITE_ONCHAINKIT_API_KEY,
   chain: base,
   
-  // Configuration Paymaster
+  // Paymaster Configuration
   paymaster: {
     url: PAYMASTER_CONFIG.paymasterUrl,
     sponsoringEnabled: true,
@@ -754,9 +754,9 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 }
 ```
 
-## 📊 Monitoring et Analytics
+## 📊 Monitoring and Analytics
 
-### Dashboard Paymaster
+### Paymaster Dashboard
 
 ```typescript
 // src/components/PaymasterStats.tsx
@@ -839,24 +839,24 @@ export function PaymasterStats() {
 
 ## 🚀 Implementation Strategy
 
-### Phase 1: Configuration de base
-1. Configurer le Paymaster Coinbase
-2. Implémenter le service de base
-3. Tester avec des transactions simples
+### Phase 1: Basic Configuration
+1. Configure Coinbase Paymaster
+2. Implement base service
+3. Test with simple transactions
 
-### Phase 2: Intégration Benefits
-1. Modifier les hooks Benefits pour supporter Paymaster
-2. Implémenter les fallbacks
-3. Tester le flow complet de redemption
+### Phase 2: Benefits Integration
+1. Modify Benefits hooks to support Paymaster
+2. Implement fallbacks
+3. Test complete redemption flow
 
-### Phase 3: Optimisation
-1. Implémenter les analytics
-2. Optimiser les conditions d'éligibilité
-3. Monitoring et alertes
+### Phase 3: Optimization
+1. Implement analytics
+2. Optimize eligibility conditions
+3. Monitoring and alerts
 
 ### Phase 4: Production
-1. Configuration production
-2. Monitoring avancé
-3. Documentation utilisateur
+1. Production configuration
+2. Advanced monitoring
+3. User documentation
 
-Cette architecture permet une intégration progressive du Paymaster tout en maintenant la compatibilité avec les transactions normales, offrant une expérience utilisateur optimale pour le système de Benefits.
+This architecture allows for progressive integration of the Paymaster while maintaining compatibility with regular transactions, offering an optimal user experience for the Benefits system.
