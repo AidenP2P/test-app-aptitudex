@@ -65,6 +65,24 @@ const About = () => {
           </div>
         </div>
 
+        {/* Video Introduction */}
+        <div className="mb-8">
+          <Card className="bg-card border-border">
+            <CardContent className="p-6">
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src="https://www.youtube.com/embed/gyiieMvIvUM"
+                  title="AptitudeX Introduction Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Main Description */}
         <div className="mb-8">
           <Card className="bg-card border-border">
