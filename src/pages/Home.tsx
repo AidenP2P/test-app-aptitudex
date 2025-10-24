@@ -1,4 +1,4 @@
-import { Award, Flame, Download, AlertTriangle, Gift } from 'lucide-react';
+import { Award, Flame, Download, AlertTriangle, Gift, Info, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { WalletPanel } from '@/components/WalletPanel';
 import { MetricCard } from '@/components/MetricCard';
@@ -201,13 +201,38 @@ const Home = () => {
           </div>
         </>}
       
-      {!isConnected && <div className="px-6 pb-8 flex flex-col items-center gap-4">
-          <p className="text-sm text-muted-foreground text-center">
-            Connect your wallet to interact with APX tokens on Base mainnet
-          </p>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">Token Contract</p>
-            <p className="font-mono text-xs">0x1A51...3dD3</p>
+      {!isConnected && <div className="px-6 pb-8 space-y-6">
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Connect your wallet to interact with APX tokens on Base mainnet
+            </p>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">Token Contract</p>
+              <p className="font-mono text-xs">0x1A51...3dD3</p>
+            </div>
+          </div>
+          
+          <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-800/30 rounded-xl p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-full flex-shrink-0">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-blue-950 dark:text-blue-50 mb-2">
+                  Questions before connecting your wallet?
+                </p>
+                <p className="text-xs text-blue-800 dark:text-blue-200 mb-3">
+                  Learn about AptitudeX and understand how our on-chain rewards system works safely.
+                </p>
+                <button
+                  onClick={() => navigate('/about')}
+                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-1"
+                >
+                  About
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>}
     </>;
